@@ -1,872 +1,1766 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CRM Retail Support System</title>
+  <title>Retail Support CRM</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Space Grotesk', 'sans-serif'],
+            body: ['IBM Plex Sans', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
   <style>
     :root {
-      --bg-dark: #0f172a;
-      --bg-card: #1e293b;
-      --bg-hover: #334155;
-      --text-main: #f1f5f9;
-      --text-muted: #94a3b8;
-      --accent: #3b82f6;
-      --accent-light: #60a5fa;
-      --border: #334155;
-      --success: #22c55e;
+      --bg-primary: #0a0f1a;
+      --bg-secondary: #111827;
+      --bg-card: #1a2234;
+      --bg-elevated: #232d42;
+      --fg-primary: #f1f5f9;
+      --fg-secondary: #94a3b8;
+      --fg-muted: #64748b;
+      --accent: #10b981;
+      --accent-hover: #059669;
+      --accent-glow: rgba(16, 185, 129, 0.2);
       --warning: #f59e0b;
       --danger: #ef4444;
+      --info: #3b82f6;
+      --border: #2d3a52;
     }
-    
-    body { font-family: 'Inter', sans-serif; background: var(--bg-dark); color: var(--text-main); }
-    
-    /* Custom Scrollbar */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: var(--bg-dark); }
-    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-    
-    /* Layout */
-    .sidebar { width: 260px; transition: transform 0.3s ease; }
-    @media (max-width: 768px) { .sidebar { position: fixed; left: 0; top: 0; bottom: 0; z-index: 50; transform: translateX(-100%); } .sidebar.open { transform: translateX(0); } }
-    
-    .nav-link { display: flex; align-items: center; padding: 12px 16px; border-radius: 8px; color: var(--text-muted); transition: all 0.2s; margin: 2px 8px; }
-    .nav-link:hover { background: var(--bg-hover); color: var(--text-main); }
-    .nav-link.active { background: var(--accent); color: white; font-weight: 600; }
-    
-    .card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
-    .input-field { background: var(--bg-dark); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text-main); width: 100%; transition: border 0.2s; }
-    .input-field:focus { outline: none; border-color: var(--accent); }
-    
-    .btn { padding: 10px 20px; border-radius: 8px; font-weight: 500; transition: all 0.2s; display: inline-flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer; }
-    .btn-primary { background: var(--accent); color: white; }
-    .btn-primary:hover { background: var(--accent-light); }
-    .btn-secondary { background: var(--bg-hover); color: var(--text-main); border: 1px solid var(--border); }
-    .btn-danger { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid rgba(239, 68, 68, 0.2); }
-    
-    .table-container { overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; }
-    th { text-align: left; padding: 12px 16px; color: var(--text-muted); font-size: 12px; font-weight: 600; text-transform: uppercase; border-bottom: 1px solid var(--border); background: var(--bg-card); }
-    td { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 14px; }
-    tr:hover td { background: rgba(255,255,255,0.02); }
-    
-    .badge { padding: 4px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; }
-    .badge-green { background: rgba(34, 197, 94, 0.1); color: var(--success); }
-    .badge-yellow { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
-    .badge-red { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
-    .badge-blue { background: rgba(59, 130, 246, 0.1); color: var(--accent-light); }
-    
-    .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 100; display: none; align-items: center; justify-content: center; padding: 16px; }
-    .modal-backdrop.active { display: flex; }
-    .modal-content { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; }
-    
-    .stat-card { position: relative; overflow: hidden; }
-    .stat-card::before { content: ''; position: absolute; top: 0; right: 0; width: 80px; height: 80px; border-radius: 50%; filter: blur(30px); opacity: 0.1; }
-    .stat-card.blue::before { background: var(--accent); }
-    .stat-card.green::before { background: var(--success); }
-    .stat-card.red::before { background: var(--danger); }
-    .stat-card.yellow::before { background: var(--warning); }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg-primary);
+      color: var(--fg-primary);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    .font-display {
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    /* Background atmosphere */
+    .bg-atmosphere {
+      background: 
+        radial-gradient(ellipse 80% 50% at 20% 0%, rgba(16, 185, 129, 0.08) 0%, transparent 50%),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(59, 130, 246, 0.06) 0%, transparent 50%),
+        var(--bg-primary);
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--fg-muted);
+    }
+
+    /* Sidebar */
+    .sidebar {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border);
+    }
+
+    .nav-item {
+      transition: all 0.2s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .nav-item:hover {
+      background: var(--bg-card);
+      border-left-color: var(--accent);
+    }
+
+    .nav-item.active {
+      background: var(--accent-glow);
+      border-left-color: var(--accent);
+      color: var(--accent);
+    }
+
+    /* Cards */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    /* KPI Cards */
+    .kpi-card {
+      background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-elevated) 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .kpi-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      filter: blur(40px);
+      opacity: 0.3;
+    }
+
+    .kpi-card.accent::before { background: var(--accent); }
+    .kpi-card.warning::before { background: var(--warning); }
+    .kpi-card.danger::before { background: var(--danger); }
+    .kpi-card.info::before { background: var(--info); }
+
+    /* Buttons */
+    .btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: var(--bg-primary);
+    }
+
+    .btn-primary:hover {
+      background: var(--accent-hover);
+      transform: translateY(-1px);
+    }
+
+    .btn-secondary {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      color: var(--fg-primary);
+    }
+
+    .btn-secondary:hover {
+      background: var(--border);
+    }
+
+    .btn-danger {
+      background: rgba(239, 68, 68, 0.2);
+      border: 1px solid var(--danger);
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: var(--danger);
+      color: white;
+    }
+
+    /* Form inputs */
+    .form-input {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--fg-primary);
+      width: 100%;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .form-input:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    .form-input::placeholder {
+      color: var(--fg-muted);
+    }
+
+    /* Tables */
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .data-table th {
+      background: var(--bg-secondary);
+      padding: 12px 16px;
+      text-align: left;
+      font-weight: 600;
+      color: var(--fg-secondary);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .data-table td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--fg-primary);
+    }
+
+    .data-table tr:hover td {
+      background: var(--bg-elevated);
+    }
+
+    /* Status badges */
+    .badge {
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .badge-success {
+      background: rgba(16, 185, 129, 0.2);
+      color: var(--accent);
+    }
+
+    .badge-warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+    }
+
+    .badge-danger {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+    }
+
+    .badge-info {
+      background: rgba(59, 130, 246, 0.2);
+      color: var(--info);
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .modal-overlay.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .modal {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      width: 90%;
+      max-width: 600px;
+      max-height: 90vh;
+      overflow-y: auto;
+      transform: scale(0.9) translateY(20px);
+      transition: transform 0.3s ease;
+    }
+
+    .modal-overlay.active .modal {
+      transform: scale(1) translateY(0);
+    }
+
+    /* Tab navigation */
+    .tab-nav {
+      display: flex;
+      gap: 4px;
+      background: var(--bg-secondary);
+      padding: 4px;
+      border-radius: 10px;
+    }
+
+    .tab-btn {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      color: var(--fg-secondary);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+
+    .tab-btn:hover {
+      color: var(--fg-primary);
+    }
+
+    .tab-btn.active {
+      background: var(--accent);
+      color: var(--bg-primary);
+    }
+
+    /* Charts */
+    .chart-bar {
+      height: 8px;
+      background: var(--bg-elevated);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .chart-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    /* Animations */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateX(-20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+
+    .animate-in {
+      animation: fadeInUp 0.4s ease forwards;
+    }
+
+    .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.3s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.4s; opacity: 0; }
+
+    /* Mobile sidebar */
+    .mobile-sidebar {
+      transform: translateX(-100%);
+      transition: transform 0.3s ease;
+    }
+
+    .mobile-sidebar.open {
+      transform: translateX(0);
+    }
+
+    /* Reduced motion */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
   </style>
 </head>
-<body class="flex">
+<body class="bg-atmosphere">
+  <!-- Mobile Header -->
+  <header class="lg:hidden fixed top-0 left-0 right-0 z-50 bg-[var(--bg-secondary)] border-b border-[var(--border)] px-4 py-3 flex items-center justify-between">
+    <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-[var(--bg-card)]" aria-label="Open menu">
+      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+      </svg>
+    </button>
+    <h1 class="font-display font-bold text-lg">Retail CRM</h1>
+    <div class="w-10"></div>
+  </header>
 
-  <!-- Sidebar -->
-  <aside id="sidebar" class="sidebar h-screen fixed left-0 top-0 bg-slate-900 border-r border-slate-700 flex flex-col z-40">
-    <div class="p-6 border-b border-slate-700">
-      <h1 class="text-xl font-bold text-white flex items-center gap-3">
-        <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-        Retail CRM
-      </h1>
-      <p class="text-xs text-slate-400 mt-1">Support Management</p>
-    </div>
-    
-    <nav class="flex-1 py-4 overflow-y-auto">
-      <div class="px-4 mb-2 text-xs font-semibold text-slate-500 uppercase">Menu</div>
-      <a href="#" onclick="navigate('dashboard')" class="nav-link active" data-page="dashboard">
-        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
-        Dashboard
-      </a>
-      <a href="#" onclick="navigate('setup')" class="nav-link" data-page="setup">
-        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-        Setup
-      </a>
-      
-      <div class="px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase">Master Data</div>
-      <a href="#" onclick="navigate('daftar-toko')" class="nav-link" data-page="daftar-toko">
-        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
-        Daftar Toko
-      </a>
-      
-      <div class="px-4 mt-6 mb-2 text-xs font-semibold text-slate-500 uppercase">Operasional</div>
-      <a href="#" onclick="navigate('visit-plan')" class="nav-link" data-page="visit-plan">
-        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-        Visit Plan
-      </a>
-      <a href="#" onclick="navigate('aktifitas')" class="nav-link" data-page="aktifitas">
-        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
-        Aktifitas
-      </a>
-      <a href="#" onclick="navigate('inteligence')" class="nav-link" data-page="inteligence">
-        <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-        Intelegence Report
-      </a>
-    </nav>
-  </aside>
+  <div class="flex min-h-screen pt-14 lg:pt-0">
+    <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar fixed lg:static inset-y-0 left-0 w-64 z-40 flex flex-col mobile-sidebar lg:transform-none">
+      <div class="p-6 border-b border-[var(--border)]">
+        <h1 class="font-display font-bold text-xl flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-[var(--accent)] flex items-center justify-center">
+            <svg class="w-5 h-5 text-[var(--bg-primary)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+            </svg>
+          </div>
+          Retail Support
+        </h1>
+        <p class="text-[var(--fg-muted)] text-sm mt-1">CRM System</p>
+      </div>
 
-  <!-- Main Content -->
-  <main class="flex-1 md:ml-[260px] min-h-screen">
-    <!-- Mobile Header -->
-    <header class="md:hidden bg-slate-900 border-b border-slate-700 p-4 flex items-center justify-between sticky top-0 z-30">
-      <button onclick="toggleSidebar()" class="p-2 rounded-md hover:bg-slate-800">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
-      </button>
-      <span class="font-bold">Retail CRM</span>
-      <div class="w-10"></div>
-    </header>
+      <nav class="flex-1 p-4 space-y-1">
+        <button onclick="navigateTo('dashboard')" class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-page="dashboard">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/>
+          </svg>
+          Dashboard
+        </button>
 
-    <div id="app-content" class="p-4 md:p-8">
-      <!-- Dynamic Content Injected Here -->
-    </div>
-  </main>
+        <button onclick="navigateTo('setup')" class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-page="setup">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+          </svg>
+          Setup
+        </button>
+
+        <button onclick="navigateTo('stores')" class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-page="stores">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+          </svg>
+          Store Directory
+        </button>
+
+        <button onclick="navigateTo('visits')" class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-page="visits">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+          </svg>
+          Visit Plan
+        </button>
+
+        <button onclick="navigateTo('activities')" class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-page="activities">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+          </svg>
+          Activities
+        </button>
+
+        <button onclick="navigateTo('intelligence')" class="nav-item w-full text-left px-4 py-3 rounded-lg flex items-center gap-3" data-page="intelligence">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          Intelligence Report
+        </button>
+      </nav>
+
+      <div class="p-4 border-t border-[var(--border)]">
+        <div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-[var(--bg-card)]">
+          <div class="w-10 h-10 rounded-full bg-[var(--accent)] flex items-center justify-center text-[var(--bg-primary)] font-bold">
+            AD
+          </div>
+          <div class="flex-1 min-w-0">
+            <p class="font-medium truncate">Admin User</p>
+            <p class="text-sm text-[var(--fg-muted)] truncate">admin@retailcrm.com</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Mobile overlay -->
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black/50 z-30 lg:hidden hidden" onclick="closeMobileSidebar()"></div>
+
+    <!-- Main Content -->
+    <main class="flex-1 lg:ml-0 overflow-auto">
+      <div id="pageContent" class="p-4 lg:p-8 max-w-7xl mx-auto">
+        <!-- Content will be injected here -->
+      </div>
+    </main>
+  </div>
 
   <!-- Modal -->
-  <div id="modal-root" class="modal-backdrop">
-    <div class="modal-content">
-      <div class="p-6 border-b border-slate-700 flex justify-between items-center">
-        <h3 id="modal-title" class="text-lg font-bold"></h3>
-        <button onclick="closeModal()" class="p-2 rounded-full hover:bg-slate-700">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <div id="modal-body" class="p-6"></div>
-      <div id="modal-footer" class="p-4 border-t border-slate-700 flex justify-end gap-3 bg-slate-800/50 rounded-b-2xl"></div>
+  <div id="modalOverlay" class="modal-overlay">
+    <div class="modal">
+      <div id="modalContent"></div>
     </div>
   </div>
 
   <script>
-    // ==========================================
-    // DATA STORE & INITIALIZATION
-    // ==========================================
+    // ============================================
+    // DATA INITIALIZATION
+    // ============================================
     
-    const STORE_KEY = 'crm_data_v1';
-    
-    // Default Data Structure
-    const defaultData = {
-      setup: {
-        statusToko: ['Active', 'Inactive', 'Pending', 'Closed'],
-        jenisKunjungan: ['Routine Visit', 'Follow-up', 'Product Demo', 'Sampling', 'Training', 'Issue Resolution'],
-        orderKe: ['1', '2', '3', '4', '5+'],
-        kategoriSampling: ['Product Sample', 'Tester', 'Promotional Item', 'Gift Set'],
-        taskCategories: ['Sales', 'Support', 'Delivery', 'Training'],
-        kompetitor: ['Competitor A', 'Competitor B', 'Market Leader X', 'Regional Player Y'],
-        users: ['John Smith', 'Sarah Johnson', 'Mike Wilson', 'Lisa Chen']
-      },
-      toko: [
-        { id: 'RTL001', namaToko: 'Toko Sumber Wangi', contactPerson: 'Haidar Habsyi', jobTitle: 'Owner', phone: '081234567890', location: 'Bumiayu', orderKe: '1', status: 'Active', jenisKunjungan: 'Routine Visit', pic: 'John Smith', mapsLink: 'https://maps.google.com', targetKunjungan: 4, lastVisit: '2026-06-01', kodeKontak: 'RTL001-HAIDAR' },
-        { id: 'RTL002', namaToko: 'Surga Parfume Cibubur', contactPerson: 'Mey Mulan', jobTitle: 'Manager', phone: '081234567891', location: 'Cibubur', orderKe: '1', status: 'Active', jenisKunjungan: 'Routine Visit', pic: 'Sarah Johnson', mapsLink: 'https://maps.google.com', targetKunjungan: 2, lastVisit: '2026-05-28', kodeKontak: 'RTL002-MEY' },
-        { id: 'RTL003', namaToko: 'Wan Parfume', contactPerson: 'Abdullah', jobTitle: 'Owner', phone: '081234567892', location: 'Jakarta', orderKe: '2', status: 'Inactive', jenisKunjungan: 'Follow-up', pic: 'John Smith', mapsLink: 'https://maps.google.com', targetKunjungan: 1, lastVisit: '2026-05-20', kodeKontak: 'RTL003-ABDULLAH' }
-      ],
-      visitPlan: [
-        { id: 'VP001', kontakToko: 'RTL001', namaToko: 'Toko Sumber Wangi', tujuanKunjungan: 'Product Demo', pic: 'John Smith', planDate: getTodayStr(2), actualDate: '', priority: 'High', keterangan: 'Demo new products' },
-        { id: 'VP002', kontakToko: 'RTL002', namaToko: 'Surga Parfume Cibubur', tujuanKunjungan: 'Routine Visit', pic: 'Sarah Johnson', planDate: getTodayStr(-2), actualDate: '', priority: 'Medium', keterangan: 'Monthly check' },
-        { id: 'VP003', kontakToko: 'RTL003', namaToko: 'Wan Parfume', tujuanKunjungan: 'Follow-up', pic: 'John Smith', planDate: getTodayStr(0), actualDate: getTodayStr(0), priority: 'Low', keterangan: 'Follow up order' }
-      ],
-      aktifitas: [
-        { id: 'ACT001', kontakToko: 'RTL001', namaToko: 'Toko Sumber Wangi', tanggalKunjungan: '2026-06-01', orderKe: '1', jenisKunjungan: 'Routine Visit', aktifitas: 'Inventory Check', kategoriSampling: 'Product Sample', sampleDesc: '50ml Tester', size: '50ml', keluhan: '', linkFoto: '', keterangan: 'Stock OK', status: 'Completed' }
-      ],
-      inteligence: [
-        { id: 'INT001', date: '2026-06-01', kontakToko: 'RTL001', namaToko: 'Toko Sumber Wangi', kompetitor: 'Competitor A', aktivitasKompetitor: 'Promotion', keterangan: 'Running 20% discount promo.' }
-      ]
-    };
-
-    // State
-    let db = {};
-
-    function initApp() {
-      const stored = localStorage.getItem(STORE_KEY);
-      if (!stored) {
-        localStorage.setItem(STORE_KEY, JSON.stringify(defaultData));
-        db = defaultData;
-      } else {
-        db = JSON.parse(stored);
+    // Initialize localStorage data
+    function initializeData() {
+      // Setup Data
+      if (!localStorage.getItem('crm_setup')) {
+        const setupData = {
+          storeStatus: ['Active', 'Inactive', 'Pending', 'Closed'],
+          visitTypes: ['Routine Visit', 'Follow-up', 'Product Demo', 'Issue Resolution', 'Sampling'],
+          samplingCategories: ['Product Sample', 'Tester', 'Promotional Item', 'Gift Set'],
+          taskCategories: ['Sales', 'Support', 'Delivery', 'Training', 'Marketing'],
+          competitorList: ['Competitor A', 'Competitor B', 'Competitor C', 'Market Leader X'],
+          userList: [
+            { id: 'USR001', name: 'Admin User', email: 'admin@retailcrm.com', role: 'Admin' },
+            { id: 'USR002', name: 'John Smith', email: 'john@retailcrm.com', role: 'Sales Rep' },
+            { id: 'USR003', name: 'Sarah Johnson', email: 'sarah@retailcrm.com', role: 'Merchandiser' }
+          ],
+          dashboardUsers: [
+            { id: 'USR001', name: 'Admin User', role: 'Admin', canViewAll: true }
+          ]
+        };
+        localStorage.setItem('crm_setup', JSON.stringify(setupData));
       }
-      navigate('dashboard');
+
+      // Store Directory
+      if (!localStorage.getItem('crm_stores')) {
+        const storeData = [
+          { contactId: 'RTL001', storeName: 'Toko Sumber Wangi Bumiayu', contactPerson: 'Haidar Habsyi', jobTitle: 'Owner', phone: '081234567890', location: 'Bumiayu', orderSequence: 1, storeStatus: 'Active', visitType: 'Routine Visit', assignedPIC: 'John Smith', googleMapsUrl: 'https://maps.google.com', visitTarget: 4, lastVisitDate: '2026-06-01', contactKey: 'RTL001-HAIDAR' },
+          { contactId: 'RTL002', storeName: 'Surga Parfume Pusat Cibubur', contactPerson: 'Mey Mulan', jobTitle: 'Manager', phone: '081234567891', location: 'Cibubur', orderSequence: 2, storeStatus: 'Active', visitType: 'Routine Visit', assignedPIC: 'Sarah Johnson', googleMapsUrl: 'https://maps.google.com', visitTarget: 2, lastVisitDate: '2026-05-28', contactKey: 'RTL002-MEY' },
+          { contactId: 'RTL003', storeName: 'Wan Parfume', contactPerson: 'Abdullah', jobTitle: 'Owner', phone: '081234567892', location: 'Jakarta', orderSequence: 3, storeStatus: 'Active', visitType: 'Follow-up', assignedPIC: 'John Smith', googleMapsUrl: 'https://maps.google.com', visitTarget: 3, lastVisitDate: '2026-05-25', contactKey: 'RTL003-ABDULLAH' },
+          { contactId: 'RTL004', storeName: 'A Man Parfume', contactPerson: 'Abdul Rahman', jobTitle: 'Owner', phone: '081234567893', location: 'Bandung', orderSequence: 4, storeStatus: 'Active', visitType: 'Routine Visit', assignedPIC: 'Sarah Johnson', googleMapsUrl: 'https://maps.google.com', visitTarget: 2, lastVisitDate: '2026-05-30', contactKey: 'RTL004-ABDUL' },
+          { contactId: 'RTL005', storeName: 'Toko Jambul Parfum', contactPerson: 'Fitri Rokhaniyah', jobTitle: 'Owner', phone: '081234567894', location: 'Surabaya', orderSequence: 5, storeStatus: 'Inactive', visitType: 'Follow-up', assignedPIC: 'John Smith', googleMapsUrl: 'https://maps.google.com', visitTarget: 1, lastVisitDate: '2026-05-15', contactKey: 'RTL005-FITRI' },
+          { contactId: 'RTL006', storeName: 'Scenthive Parfume', contactPerson: 'Dzaky Amrullah', jobTitle: 'Manager', phone: '081234567895', location: 'Yogyakarta', orderSequence: 6, storeStatus: 'Active', visitType: 'Product Demo', assignedPIC: 'Sarah Johnson', googleMapsUrl: 'https://maps.google.com', visitTarget: 3, lastVisitDate: '2026-06-02', contactKey: 'RTL006-DZAKY' },
+          { contactId: 'RTL007', storeName: 'Fatha Parfume Pusat', contactPerson: 'Angga', jobTitle: 'Owner', phone: '081234567896', location: 'Semarang', orderSequence: 7, storeStatus: 'Active', visitType: 'Routine Visit', assignedPIC: 'John Smith', googleMapsUrl: 'https://maps.google.com', visitTarget: 4, lastVisitDate: '2026-05-29', contactKey: 'RTL007-ANGGA' },
+          { contactId: 'RTL008', storeName: 'Toko Raja Parfume', contactPerson: 'Eko Wahyudin', jobTitle: 'Owner', phone: '081234567897', location: 'Malang', orderSequence: 8, storeStatus: 'Active', visitType: 'Routine Visit', assignedPIC: 'Sarah Johnson', googleMapsUrl: 'https://maps.google.com', visitTarget: 2, lastVisitDate: '2026-06-01', contactKey: 'RTL008-EKO' },
+          { contactId: 'RTL009', storeName: 'Toko Dokter Parfume', contactPerson: 'Irwan', jobTitle: 'Owner', phone: '081234567898', location: 'Solo', orderSequence: 9, storeStatus: 'Pending', visitType: 'Follow-up', assignedPIC: 'John Smith', googleMapsUrl: 'https://maps.google.com', visitTarget: 1, lastVisitDate: '', contactKey: 'RTL009-IRWAN' },
+          { contactId: 'RTL010', storeName: 'Fiesta Parfume', contactPerson: 'Berri Ilham', jobTitle: 'Manager', phone: '081234567899', location: 'Bekasi', orderSequence: 10, storeStatus: 'Active', visitType: 'Routine Visit', assignedPIC: 'Sarah Johnson', googleMapsUrl: 'https://maps.google.com', visitTarget: 3, lastVisitDate: '2026-05-27', contactKey: 'RTL010-BERRI' }
+        ];
+        localStorage.setItem('crm_stores', JSON.stringify(storeData));
+      }
+
+      // Visit Plans
+      if (!localStorage.getItem('crm_visits')) {
+        const today = new Date();
+        const visitData = [
+          { id: 'VP001', storeId: 'RTL001', storeName: 'Toko Sumber Wangi Bumiayu', visitPurpose: 'Product Demo', pic: 'John Smith', plannedDate: formatDate(addDays(today, 2)), actualVisitDate: '', priority: 'High', status: 'Scheduled', notes: 'Demo new fragrance line', daysUntilDue: 2 },
+          { id: 'VP002', storeId: 'RTL002', storeName: 'Surga Parfume Pusat Cibubur', visitPurpose: 'Routine Visit', pic: 'Sarah Johnson', plannedDate: formatDate(addDays(today, -1)), actualVisitDate: '', priority: 'Medium', status: 'Overdue', notes: 'Monthly check-in', daysUntilDue: -1 },
+          { id: 'VP003', storeId: 'RTL003', storeName: 'Wan Parfume', visitPurpose: 'Follow-up', pic: 'John Smith', plannedDate: formatDate(today), actualVisitDate: '', priority: 'High', status: 'Scheduled', notes: 'Follow up on last order', daysUntilDue: 0 },
+          { id: 'VP004', storeId: 'RTL004', storeName: 'A Man Parfume', visitPurpose: 'Sampling', pic: 'Sarah Johnson', plannedDate: formatDate(addDays(today, 5)), actualVisitDate: '', priority: 'Low', status: 'Scheduled', notes: 'Deliver new samples', daysUntilDue: 5 },
+          { id: 'VP005', storeId: 'RTL005', storeName: 'Toko Jambul Parfum', visitPurpose: 'Issue Resolution', pic: 'John Smith', plannedDate: formatDate(addDays(today, 3)), actualVisitDate: '', priority: 'High', status: 'Scheduled', notes: 'Resolve delivery complaint', daysUntilDue: 3 },
+          { id: 'VP006', storeId: 'RTL006', storeName: 'Scenthive Parfume', visitPurpose: 'Routine Visit', pic: 'Sarah Johnson', plannedDate: formatDate(addDays(today, -3)), actualVisitDate: formatDate(addDays(today, -3)), priority: 'Medium', status: 'Visited', notes: 'Completed inventory check', daysUntilDue: -3 },
+          { id: 'VP007', storeId: 'RTL007', storeName: 'Fatha Parfume Pusat', visitPurpose: 'Follow-up', pic: 'John Smith', plannedDate: formatDate(addDays(today, 1)), actualVisitDate: '', priority: 'Medium', status: 'Scheduled', notes: 'Check on special order', daysUntilDue: 1 }
+        ];
+        localStorage.setItem('crm_visits', JSON.stringify(visitData));
+      }
+
+      // Activities
+      if (!localStorage.getItem('crm_activities')) {
+        const activityData = [
+          { id: 'ACT001', storeId: 'RTL006', storeName: 'Scenthive Parfume', visitDate: '2026-06-01', orderSequence: 1, visitType: 'Routine Visit', activity: 'Inventory Check', samplingCategory: 'Product Sample', sampleDescription: 'New fragrance samples', productSize: '50ml', complaintFeedback: '', photoAttachment: '', notes: 'Completed monthly inventory check. Stock levels good.', status: 'Completed' },
+          { id: 'ACT002', storeId: 'RTL008', storeName: 'Toko Raja Parfume', visitDate: '2026-06-01', orderSequence: 2, visitType: 'Product Demo', activity: 'Product Demo', samplingCategory: 'Tester', sampleDescription: 'Premium line testers', productSize: '100ml', complaintFeedback: 'Customer requested more variety', photoAttachment: '', notes: 'Demo went well. Store interested in new line.', status: 'Completed' },
+          { id: 'ACT003', storeId: 'RTL001', storeName: 'Toko Sumber Wangi Bumiayu', visitDate: '2026-05-30', orderSequence: 3, visitType: 'Follow-up', activity: 'Order Follow-up', samplingCategory: '', sampleDescription: '', productSize: '', complaintFeedback: '', photoAttachment: '', notes: 'Confirmed order for next week delivery.', status: 'Completed' },
+          { id: 'ACT004', storeId: 'RTL010', storeName: 'Fiesta Parfume', visitDate: '2026-05-28', orderSequence: 4, visitType: 'Routine Visit', activity: 'Sales Visit', samplingCategory: 'Promotional Item', sampleDescription: 'Promotional flyers', productSize: 'N/A', complaintFeedback: 'Price concern raised', photoAttachment: '', notes: 'Discussed pricing strategy with manager.', status: 'Completed' },
+          { id: 'ACT005', storeId: 'RTL004', storeName: 'A Man Parfume', visitDate: '2026-05-27', orderSequence: 5, visitType: 'Sampling', activity: 'Sample Delivery', samplingCategory: 'Gift Set', sampleDescription: 'Holiday gift sets', productSize: 'Set', complaintFeedback: '', photoAttachment: '', notes: 'Delivered promotional materials.', status: 'Completed' }
+        ];
+        localStorage.setItem('crm_activities', JSON.stringify(activityData));
+      }
+
+      // Intelligence Reports
+      if (!localStorage.getItem('crm_intelligence')) {
+        const intelData = [
+          { id: 'INT001', date: '2026-06-01', storeId: 'RTL006', storeName: 'Scenthive Parfume', competitor: 'Competitor A', competitorActivity: 'Promotion', detailedNotes: 'Running 20% discount on similar products. Heavy social media marketing.' },
+          { id: 'INT002', date: '2026-05-30', storeId: 'RTL001', storeName: 'Toko Sumber Wangi Bumiayu', competitor: 'Market Leader X', competitorActivity: 'New Product Launch', detailedNotes: 'Launched new premium line. Packaging very attractive. Price point competitive.' },
+          { id: 'INT003', date: '2026-05-28', storeId: 'RTL010', storeName: 'Fiesta Parfume', competitor: 'Competitor B', competitorActivity: 'Price Reduction', detailedNotes: 'Reduced prices by 15% across all product lines. Aggressive market strategy.' },
+          { id: 'INT004', date: '2026-05-25', storeId: 'RTL004', storeName: 'A Man Parfume', competitor: 'Competitor C', competitorActivity: 'Exclusive Deal', detailedNotes: 'Signed exclusive distribution deal with major retailer in the area.' }
+        ];
+        localStorage.setItem('crm_intelligence', JSON.stringify(intelData));
+      }
     }
 
-    function saveData() {
-      localStorage.setItem(STORE_KEY, JSON.stringify(db));
+    // Helper functions
+    function formatDate(date) {
+      return date.toISOString().split('T')[0];
     }
 
-    function getTodayStr(daysOffset = 0) {
-      const d = new Date();
-      d.setDate(d.getDate() + daysOffset);
-      return d.toISOString().split('T')[0];
+    function addDays(date, days) {
+      const result = new Date(date);
+      result.setDate(result.getDate() + days);
+      return result;
     }
 
-    // ==========================================
-    // NAVIGATION & UI HELPERS
-    // ==========================================
+    function getData(key) {
+      return JSON.parse(localStorage.getItem(key) || '[]');
+    }
 
-    function navigate(page) {
-      // Update active link
-      document.querySelectorAll('.nav-link').forEach(el => {
-        el.classList.remove('active');
-        if(el.dataset.page === page) el.classList.add('active');
+    function setData(key, data) {
+      localStorage.setItem(key, JSON.stringify(data));
+    }
+
+    function generateId(prefix) {
+      return prefix + Date.now().toString(36).toUpperCase();
+    }
+
+    // ============================================
+    // NAVIGATION
+    // ============================================
+    
+    let currentPage = 'dashboard';
+
+    function navigateTo(page) {
+      currentPage = page;
+      
+      // Update nav items
+      document.querySelectorAll('.nav-item').forEach(item => {
+        item.classList.remove('active');
+        if (item.dataset.page === page) {
+          item.classList.add('active');
+        }
       });
 
       // Close mobile sidebar
-      document.getElementById('sidebar').classList.remove('open');
+      closeMobileSidebar();
 
       // Render page
-      const content = document.getElementById('app-content');
+      renderPage(page);
+    }
+
+    function renderPage(page) {
+      const content = document.getElementById('pageContent');
+      
       switch(page) {
-        case 'dashboard': renderDashboard(content); break;
-        case 'setup': renderSetup(content); break;
-        case 'daftar-toko': renderDaftarToko(content); break;
-        case 'visit-plan': renderVisitPlan(content); break;
-        case 'aktifitas': renderAktifitas(content); break;
-        case 'inteligence': renderInteligence(content); break;
-        default: renderDashboard(content);
+        case 'dashboard':
+          renderDashboard(content);
+          break;
+        case 'setup':
+          renderSetup(content);
+          break;
+        case 'stores':
+          renderStores(content);
+          break;
+        case 'visits':
+          renderVisits(content);
+          break;
+        case 'activities':
+          renderActivities(content);
+          break;
+        case 'intelligence':
+          renderIntelligence(content);
+          break;
+        default:
+          renderDashboard(content);
       }
     }
 
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-    }
-
-    function openModal(title, bodyHtml, footerHtml = '') {
-      document.getElementById('modal-title').innerText = title;
-      document.getElementById('modal-body').innerHTML = bodyHtml;
-      document.getElementById('modal-footer').innerHTML = footerHtml;
-      document.getElementById('modal-root').classList.add('active');
-    }
-
-    function closeModal() {
-      document.getElementById('modal-root').classList.remove('active');
-    }
-
-    function toast(msg, type = 'success') {
-      const el = document.createElement('div');
-      el.className = `fixed bottom-4 right-4 p-4 rounded-lg shadow-lg text-white ${type === 'success' ? 'bg-green-600' : 'bg-red-600'} z-50 animate-pulse`;
-      el.innerText = msg;
-      document.body.appendChild(el);
-      setTimeout(() => el.remove(), 3000);
-    }
-
-    function getBadgeClass(status) {
-      if(status === 'Active' || status === 'Visited' || status === 'Completed') return 'badge-green';
-      if(status === 'Scheduled' || status === 'Pending') return 'badge-yellow';
-      if(status === 'Inactive' || status === 'Overdue') return 'badge-red';
-      return 'badge-blue';
-    }
-
-    function calculateVisitStatus(planDate, actualDate) {
-      if(actualDate) return 'Visited';
-      const today = new Date(); today.setHours(0,0,0,0);
-      const plan = new Date(planDate); plan.setHours(0,0,0,0);
-      if(plan < today) return 'Overdue';
-      return 'Scheduled';
-    }
-
-    function calculateDaysDue(planDate) {
-      const today = new Date(); today.setHours(0,0,0,0);
-      const plan = new Date(planDate); plan.setHours(0,0,0,0);
-      const diff = Math.ceil((plan - today) / (1000 * 60 * 60 * 24));
-      return diff;
-    }
-
-    // ==========================================
+    // ============================================
     // DASHBOARD
-    // ==========================================
+    // ============================================
+    
+    function renderDashboard(container) {
+      const stores = getData('crm_stores');
+      const visits = getData('crm_visits');
+      const activities = getData('crm_activities');
+      const intelligence = getData('crm_intelligence');
 
-    function renderDashboard(el) {
-      // Calculations
-      const totalToko = db.toko.length;
-      const activeToko = db.toko.filter(t => t.status === 'Active').length;
-      const inactiveToko = db.toko.filter(t => t.status === 'Inactive').length;
-      
-      let scheduled = 0, overdue = 0, visited = 0;
-      db.visitPlan.forEach(v => {
-        const s = calculateVisitStatus(v.planDate, v.actualDate);
-        if(s === 'Scheduled') scheduled++;
-        if(s === 'Overdue') overdue++;
-        if(s === 'Visited') visited++;
+      // Calculate KPIs
+      const totalStores = stores.length;
+      const activeStores = stores.filter(s => s.storeStatus === 'Active').length;
+      const inactiveStores = stores.filter(s => s.storeStatus === 'Inactive').length;
+
+      const plannedVisits = visits.filter(v => v.status === 'Scheduled').length;
+      const completedVisits = visits.filter(v => v.status === 'Visited').length;
+      const overdueVisits = visits.filter(v => v.status === 'Overdue').length;
+
+      const totalActivities = activities.length;
+      const samplingActivities = activities.filter(a => a.samplingCategory && a.samplingCategory !== '').length;
+      const feedbackRecords = activities.filter(a => a.complaintFeedback && a.complaintFeedback !== '').length;
+
+      const competitorActivities = intelligence.length;
+      const competitorCounts = {};
+      intelligence.forEach(i => {
+        competitorCounts[i.competitor] = (competitorCounts[i.competitor] || 0) + 1;
       });
+      const mostActiveCompetitor = Object.entries(competitorCounts).sort((a,b) => b[1] - a[1])[0];
 
-      const totalAktifitas = db.aktifitas.length;
-      const totalSampling = db.aktifitas.filter(a => a.kategoriSampling).length;
-      
-      const kompetitorCount = {};
-      db.inteligence.forEach(i => {
-        kompetitorCount[i.kompetitor] = (kompetitorCount[i.kompetitor] || 0) + 1;
-      });
-      const topKompetitor = Object.entries(kompetitorCount).sort((a,b) => b[1] - a[1])[0];
-
-      el.innerHTML = `
+      container.innerHTML = `
         <div class="mb-8">
-          <h1 class="text-2xl font-bold text-white">Dashboard</h1>
-          <p class="text-slate-400">Executive overview of retail support operations.</p>
+          <h1 class="font-display text-3xl font-bold mb-2">Dashboard</h1>
+          <p class="text-[var(--fg-secondary)]">Welcome back, Admin. Here's your retail support overview.</p>
         </div>
 
-        <!-- KPIs -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <div class="card p-5 stat-card blue">
-            <p class="text-slate-400 text-sm mb-1">Total Toko</p>
-            <p class="text-3xl font-bold">${totalToko}</p>
-            <p class="text-xs text-green-400 mt-2">${activeToko} Active</p>
-          </div>
-          <div class="card p-5 stat-card yellow">
-            <p class="text-slate-400 text-sm mb-1">Scheduled Visits</p>
-            <p class="text-3xl font-bold">${scheduled}</p>
-            <p class="text-xs text-slate-400 mt-2">Upcoming plans</p>
-          </div>
-          <div class="card p-5 stat-card red">
-            <p class="text-slate-400 text-sm mb-1">Overdue Visits</p>
-            <p class="text-3xl font-bold">${overdue}</p>
-            <p class="text-xs text-red-400 mt-2">Need attention</p>
-          </div>
-          <div class="card p-5 stat-card green">
-            <p class="text-slate-400 text-sm mb-1">Visited</p>
-            <p class="text-3xl font-bold">${visited}</p>
-            <p class="text-xs text-slate-400 mt-2">Completed</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <!-- Recent Activities -->
-          <div class="card">
-            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
-              <h3 class="font-semibold">Recent Activities</h3>
-              <span class="text-xs text-blue-400 cursor-pointer hover:underline" onclick="navigate('aktifitas')">View All</span>
-            </div>
-            <div class="p-4">
-              ${db.aktifitas.slice(0, 5).map(a => `
-                <div class="flex items-center justify-between py-2 border-b border-slate-700/50 last:border-0">
-                  <div>
-                    <p class="text-sm font-medium">${a.namaToko}</p>
-                    <p class="text-xs text-slate-400">${a.tanggalKunjungan}</p>
-                  </div>
-                  <span class="badge ${getBadgeClass(a.status)}">${a.status}</span>
+        <!-- STORE KPIs -->
+        <div class="mb-8">
+          <h2 class="font-display text-lg font-semibold mb-4 text-[var(--fg-secondary)]">STORE METRICS</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="kpi-card accent p-6 animate-in stagger-1">
+              <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-[var(--accent)]/20 flex items-center justify-center">
+                  <svg class="w-6 h-6 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                  </svg>
                 </div>
-              `).join('')}
-            </div>
-          </div>
-
-          <!-- Intelligence Summary -->
-          <div class="card">
-            <div class="p-4 border-b border-slate-700 flex justify-between items-center">
-              <h3 class="font-semibold">Intelligence Summary</h3>
-              <span class="text-xs text-blue-400 cursor-pointer hover:underline" onclick="navigate('inteligence')">View All</span>
-            </div>
-            <div class="p-4">
-              <div class="mb-4 flex justify-between items-center">
-                <span class="text-slate-400 text-sm">Most Active Competitor:</span>
-                <span class="badge badge-red">${topKompetitor ? topKompetitor[0] : 'N/A'}</span>
               </div>
-              <p class="text-sm font-medium mb-2">Activity Distribution:</p>
-              ${Object.entries(kompetitorCount).map(([k, v]) => `
-                <div class="flex items-center gap-3 mb-2">
-                  <span class="text-xs w-24 truncate">${k}</span>
-                  <div class="flex-1 h-2 bg-slate-700 rounded-full overflow-hidden">
-                    <div class="h-full bg-blue-500" style="width: ${(v/db.inteligence.length)*100}%"></div>
-                  </div>
-                  <span class="text-xs">${v}</span>
+              <p class="text-[var(--fg-muted)] text-sm mb-1">Total Stores</p>
+              <p class="font-display text-3xl font-bold">${totalStores}</p>
+            </div>
+
+            <div class="kpi-card accent p-6 animate-in stagger-2">
+              <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-[var(--accent)]/20 flex items-center justify-center">
+                  <svg class="w-6 h-6 text-[var(--accent)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
                 </div>
-              `).join('')}
+              </div>
+              <p class="text-[var(--fg-muted)] text-sm mb-1">Active Stores</p>
+              <p class="font-display text-3xl font-bold">${activeStores}</p>
+            </div>
+
+            <div class="kpi-card danger p-6 animate-in stagger-3">
+              <div class="flex items-center justify-between mb-4">
+                <div class="w-12 h-12 rounded-xl bg-[var(--danger)]/20 flex items-center justify-center">
+                  <svg class="w-6 h-6 text-[var(--danger)]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                  </svg>
+                </div>
+              </div>
+              <p class="text-[var(--fg-muted)] text-sm mb-1">Inactive Stores</p>
+              <p class="font-display text-3xl font-bold">${inactiveStores}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- VISIT KPIs -->
+        <div class="mb-8">
+          <h2 class="font-display text-lg font-semibold mb-4 text-[var(--fg-secondary)]">VISIT METRICS</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div class="kpi-card info p-6 animate-in stagger-1">
+              <p class="text-[var(--fg-muted)] text-sm mb-1">Planned Visits</p>
+              <p class="font-display text-3xl font-bold">${plannedVisits}</p>
+              <div class="chart-bar mt-3">
+                <div class="chart-bar-fill bg-[var(--info)]" style="width: ${totalStores > 0 ? (plannedVisits/totalStores*100) : 0}%"></div>
+              </div>
+            </div>
+
+            <div class="kpi-card accent p-6 animate-in stagger-2">
+              <p class="text-[var(--fg-muted)] text-sm mb-1">Completed Visits</p>
+              <p class="font-display text-3xl font-bold">${completedVisits}</p>
+              <div class="chart-bar mt-3">
+                <div class="chart-bar-fill bg-[var(--accent)]" style="width: ${visits.length > 0 ? (completedVisits/visits.length*100) : 0}%"></div>
+              </div>
+            </div>
+
+            <div class="kpi-card danger p-6 animate-in stagger-3">
+              <p class="text-[var(--fg-muted)] text-sm mb-1">Overdue Visits</p>
+              <p class="font-display text-3xl font-bold">${overdueVisits}</p>
+              <div class="chart-bar mt-3">
+                <div class="chart-bar-fill bg-[var(--danger)]" style="width: ${visits.length > 0 ? (overdueVisits/visits.length*100) : 0}%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIVITY & INTELLIGENCE KPIs -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div class="card p-6">
+            <h3 class="font-display text-lg font-semibold mb-4">ACTIVITY METRICS</h3>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-[var(--fg-secondary)]">Total Activities</span>
+                <span class="font-display font-bold text-xl">${totalActivities}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[var(--fg-secondary)]">Sampling Activities</span>
+                <span class="font-display font-bold text-xl">${samplingActivities}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[var(--fg-secondary)]">Feedback Records</span>
+                <span class="font-display font-bold text-xl">${feedbackRecords}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="card p-6">
+            <h3 class="font-display text-lg font-semibold mb-4">INTELLIGENCE METRICS</h3>
+            <div class="space-y-4">
+              <div class="flex items-center justify-between">
+                <span class="text-[var(--fg-secondary)]">Competitor Activities</span>
+                <span class="font-display font-bold text-xl">${competitorActivities}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[var(--fg-secondary)]">Most Active Competitor</span>
+                <span class="badge badge-warning">${mostActiveCompetitor ? mostActiveCompetitor[0] : 'N/A'}</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-[var(--fg-secondary)]">Reports This Month</span>
+                <span class="font-display font-bold text-xl">${competitorActivities}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Activities & Upcoming Visits -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="card overflow-hidden">
+            <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
+              <h3 class="font-display font-semibold">Recent Activities</h3>
+              <button onclick="navigateTo('activities')" class="text-sm text-[var(--accent)] hover:underline">View All</button>
+            </div>
+            <div class="overflow-x-auto max-h-64">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Store</th>
+                    <th>Date</th>
+                    <th>Activity</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${activities.slice(0, 5).map(a => `
+                    <tr>
+                      <td class="truncate max-w-[150px]">${a.storeName}</td>
+                      <td>${a.visitDate}</td>
+                      <td><span class="badge badge-info">${a.activity}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="card overflow-hidden">
+            <div class="p-4 border-b border-[var(--border)] flex items-center justify-between">
+              <h3 class="font-display font-semibold">Upcoming Visits</h3>
+              <button onclick="navigateTo('visits')" class="text-sm text-[var(--accent)] hover:underline">View All</button>
+            </div>
+            <div class="overflow-x-auto max-h-64">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Store</th>
+                    <th>Date</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${visits.filter(v => v.status !== 'Visited').slice(0, 5).map(v => `
+                    <tr>
+                      <td class="truncate max-w-[150px]">${v.storeName}</td>
+                      <td>${v.plannedDate}</td>
+                      <td><span class="badge ${v.status === 'Overdue' ? 'badge-danger' : v.status === 'Scheduled' ? 'badge-warning' : 'badge-success'}">${v.status}</span></td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
       `;
     }
 
-    // ==========================================
+    // ============================================
     // SETUP MODULE
-    // ==========================================
-
-    let currentSetupTab = 'statusToko';
-
-    function renderSetup(el) {
-      el.innerHTML = `
-        <div class="mb-6">
-          <h1 class="text-2xl font-bold text-white">Setup</h1>
-          <p class="text-slate-400">Master data configuration for dropdowns.</p>
+    // ============================================
+    
+    function renderSetup(container) {
+      const setup = getData('crm_setup');
+      
+      container.innerHTML = `
+        <div class="mb-8">
+          <h1 class="font-display text-3xl font-bold mb-2">Setup</h1>
+          <p class="text-[var(--fg-secondary)]">Manage system configuration and master data.</p>
         </div>
 
-        <div class="flex flex-wrap gap-2 mb-6">
-          ${['statusToko', 'jenisKunjungan', 'orderKe', 'kategoriSampling', 'taskCategories', 'kompetitor', 'users'].map(key => `
-            <button onclick="switchSetupTab('${key}')" class="px-4 py-2 rounded-lg text-sm font-medium transition ${currentSetupTab === key ? 'bg-blue-600 text-white' : 'bg-slate-700 text-slate-300 hover:bg-slate-600'}">
-              ${key.replace(/([A-Z])/g, ' $1').trim()}
-            </button>
-          `).join('')}
+        <div class="tab-nav mb-6 overflow-x-auto">
+          <button class="tab-btn active" onclick="switchSetupTab('storeStatus', this)">Store Status</button>
+          <button class="tab-btn" onclick="switchSetupTab('visitTypes', this)">Visit Types</button>
+          <button class="tab-btn" onclick="switchSetupTab('samplingCategories', this)">Sampling Categories</button>
+          <button class="tab-btn" onclick="switchSetupTab('taskCategories', this)">Task Categories</button>
+          <button class="tab-btn" onclick="switchSetupTab('competitorList', this)">Competitor List</button>
+          <button class="tab-btn" onclick="switchSetupTab('userList', this)">User List</button>
         </div>
 
-        <div class="card p-6">
-          <div class="flex justify-between items-center mb-4">
-            <h3 class="text-lg font-semibold">${currentSetupTab.replace(/([A-Z])/g, ' $1').trim()}</h3>
-            <button onclick="addSetupItem()" class="btn btn-primary text-sm">Add New</button>
-          </div>
-          <div id="setup-list" class="space-y-2"></div>
+        <div id="setupContent" class="card p-6">
+          ${renderSetupTab('storeStatus', setup.storeStatus)}
         </div>
       `;
-      renderSetupList();
     }
 
-    function switchSetupTab(key) {
-      currentSetupTab = key;
-      navigate('setup');
-    }
-
-    function renderSetupList() {
-      const list = document.getElementById('setup-list');
-      if(!list) return;
-      const data = db.setup[currentSetupTab];
+    function switchSetupTab(tab, btn) {
+      const setup = getData('crm_setup');
       
-      list.innerHTML = data.map((item, idx) => `
-        <div class="flex items-center justify-between p-3 bg-slate-800 rounded-lg">
-          <span>${item}</span>
-          <div class="flex gap-2">
-            <button onclick="editSetupItem(${idx})" class="p-2 hover:bg-slate-700 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-            <button onclick="deleteSetupItem(${idx})" class="p-2 hover:bg-red-900/50 text-red-400 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    function addSetupItem() {
-      openModal('Add New Item', 
-        `<input id="setup-input" type="text" class="input-field" placeholder="Enter value...">`,
-        `<button onclick="closeModal()" class="btn btn-secondary">Cancel</button><button onclick="saveSetupItem(-1)" class="btn btn-primary">Save</button>`
-      );
-    }
-
-    function editSetupItem(idx) {
-      const val = db.setup[currentSetupTab][idx];
-      openModal('Edit Item', 
-        `<input id="setup-input" type="text" class="input-field" value="${val}">`,
-        `<button onclick="closeModal()" class="btn btn-secondary">Cancel</button><button onclick="saveSetupItem(${idx})" class="btn btn-primary">Update</button>`
-      );
-    }
-
-    function saveSetupItem(idx) {
-      const val = document.getElementById('setup-input').value.trim();
-      if(!val) return;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
       
-      if(idx === -1) {
-        db.setup[currentSetupTab].push(val);
-      } else {
-        db.setup[currentSetupTab][idx] = val;
-      }
-      saveData();
-      closeModal();
-      renderSetupList();
+      document.getElementById('setupContent').innerHTML = renderSetupTab(tab, setup[tab]);
     }
 
-    function deleteSetupItem(idx) {
-      if(confirm('Delete this item?')) {
-        db.setup[currentSetupTab].splice(idx, 1);
-        saveData();
-        renderSetupList();
-      }
-    }
-
-    // ==========================================
-    // DAFTAR TOKO MODULE
-    // ==========================================
-
-    function renderDaftarToko(el) {
-      el.innerHTML = `
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h1 class="text-2xl font-bold text-white">Daftar Toko</h1>
-            <p class="text-slate-400">Master database of all stores.</p>
-          </div>
-          <button onclick="openTokoModal()" class="btn btn-primary">Add Store</button>
+    function renderSetupTab(tab, data) {
+      const isUserList = tab === 'userList';
+      
+      return `
+        <div class="flex items-center justify-between mb-6">
+          <h3 class="font-display text-lg font-semibold">${formatTabName(tab)}</h3>
+          <button onclick="openSetupModal('${tab}')" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add New
+          </button>
         </div>
-
-        <div class="card overflow-hidden">
-          <div class="table-container">
-            <table>
+        
+        ${isUserList ? `
+          <div class="overflow-x-auto">
+            <table class="data-table">
               <thead>
                 <tr>
                   <th>ID</th>
-                  <th>Nama Toko</th>
+                  <th>Name</th>
+                  <th>Email</th>
+                  <th>Role</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${data.map((item, index) => `
+                  <tr>
+                    <td>${item.id}</td>
+                    <td>${item.name}</td>
+                    <td>${item.email}</td>
+                    <td><span class="badge badge-info">${item.role}</span></td>
+                    <td>
+                      <div class="flex gap-2">
+                        <button onclick="editSetupItem('${tab}', ${index})" class="p-2 rounded hover:bg-[var(--bg-elevated)] text-[var(--fg-secondary)] hover:text-[var(--fg-primary)]">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                          </svg>
+                        </button>
+                        <button onclick="deleteSetupItem('${tab}', ${index})" class="p-2 rounded hover:bg-[var(--danger)]/20 text-[var(--danger)]">
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        ` : `
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${data.map((item, index) => `
+              <div class="p-4 rounded-lg bg-[var(--bg-secondary)] border border-[var(--border)] flex items-center justify-between">
+                <span class="font-medium">${isUserList ? item.name : item}</span>
+                <div class="flex gap-2">
+                  <button onclick="editSetupItem('${tab}', ${index})" class="p-2 rounded hover:bg-[var(--bg-elevated)] text-[var(--fg-secondary)] hover:text-[var(--fg-primary)]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                    </svg>
+                  </button>
+                  <button onclick="deleteSetupItem('${tab}', ${index})" class="p-2 rounded hover:bg-[var(--danger)]/20 text-[var(--danger)]">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        `}
+      `;
+    }
+
+    function formatTabName(tab) {
+      const names = {
+        storeStatus: 'Store Status',
+        visitTypes: 'Visit Types',
+        samplingCategories: 'Sampling Categories',
+        taskCategories: 'Task Categories',
+        competitorList: 'Competitor List',
+        userList: 'User List'
+      };
+      return names[tab] || tab;
+    }
+
+    function openSetupModal(tab, index = null) {
+      const setup = getData('crm_setup');
+      const data = setup[tab];
+      const isEdit = index !== null;
+      const isUserList = tab === 'userList';
+      
+      const item = isEdit ? data[index] : null;
+      
+      const modalContent = isUserList ? `
+        <div class="p-6 border-b border-[var(--border)]">
+          <h3 class="font-display text-xl font-bold">${isEdit ? 'Edit User' : 'Add New User'}</h3>
+        </div>
+        <form onsubmit="saveSetupUser(event, '${tab}', ${index})" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">User ID</label>
+            <input type="text" name="id" class="form-input" value="${item?.id || ''}" ${isEdit ? 'readonly' : ''} required>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Name</label>
+            <input type="text" name="name" class="form-input" value="${item?.name || ''}" required>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Email</label>
+            <input type="email" name="email" class="form-input" value="${item?.email || ''}" required>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Role</label>
+            <select name="role" class="form-input" required>
+              <option value="">Select Role</option>
+              <option value="Admin" ${item?.role === 'Admin' ? 'selected' : ''}>Admin</option>
+              <option value="Sales Rep" ${item?.role === 'Sales Rep' ? 'selected' : ''}>Sales Rep</option>
+              <option value="Merchandiser" ${item?.role === 'Merchandiser' ? 'selected' : ''}>Merchandiser</option>
+            </select>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="button" onclick="closeModal()" class="btn btn-secondary flex-1">Cancel</button>
+            <button type="submit" class="btn btn-primary flex-1">${isEdit ? 'Update' : 'Add'}</button>
+          </div>
+        </form>
+      ` : `
+        <div class="p-6 border-b border-[var(--border)]">
+          <h3 class="font-display text-xl font-bold">${isEdit ? 'Edit' : 'Add New'} ${formatTabName(tab)}</h3>
+        </div>
+        <form onsubmit="saveSetupItem(event, '${tab}', ${index})" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Value</label>
+            <input type="text" name="value" class="form-input" value="${isEdit ? item : ''}" required>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="button" onclick="closeModal()" class="btn btn-secondary flex-1">Cancel</button>
+            <button type="submit" class="btn btn-primary flex-1">${isEdit ? 'Update' : 'Add'}</button>
+          </div>
+        </form>
+      `;
+      
+      document.getElementById('modalContent').innerHTML = modalContent;
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function saveSetupItem(e, tab, index) {
+      e.preventDefault();
+      const form = e.target;
+      const value = form.value.value;
+      
+      const setup = getData('crm_setup');
+      if (index !== null) {
+        setup[tab][index] = value;
+      } else {
+        setup[tab].push(value);
+      }
+      setData('crm_setup', setup);
+      
+      closeModal();
+      document.getElementById('setupContent').innerHTML = renderSetupTab(tab, setup[tab]);
+    }
+
+    function saveSetupUser(e, tab, index) {
+      e.preventDefault();
+      const form = e.target;
+      const user = {
+        id: form.id.value,
+        name: form.name.value,
+        email: form.email.value,
+        role: form.role.value
+      };
+      
+      const setup = getData('crm_setup');
+      if (index !== null) {
+        setup[tab][index] = user;
+      } else {
+        setup[tab].push(user);
+      }
+      setData('crm_setup', setup);
+      
+      closeModal();
+      document.getElementById('setupContent').innerHTML = renderSetupTab(tab, setup[tab]);
+    }
+
+    function editSetupItem(tab, index) {
+      openSetupModal(tab, index);
+    }
+
+    function deleteSetupItem(tab, index) {
+      if (!confirm('Are you sure you want to delete this item?')) return;
+      
+      const setup = getData('crm_setup');
+      setup[tab].splice(index, 1);
+      setData('crm_setup', setup);
+      
+      document.getElementById('setupContent').innerHTML = renderSetupTab(tab, setup[tab]);
+    }
+
+    // ============================================
+    // STORE DIRECTORY MODULE
+    // ============================================
+    
+    function renderStores(container) {
+      const stores = getData('crm_stores');
+      const setup = getData('crm_setup');
+      
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 class="font-display text-3xl font-bold mb-2">Store Directory</h1>
+            <p class="text-[var(--fg-secondary)]">Manage your store/customer database.</p>
+          </div>
+          <button onclick="openStoreModal()" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Store
+          </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="card p-4 mb-6">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+              <input type="text" id="storeSearch" placeholder="Search stores..." class="form-input" oninput="filterStores()">
+            </div>
+            <select id="storeStatusFilter" class="form-input sm:w-40" onchange="filterStores()">
+              <option value="">All Status</option>
+              ${setup.storeStatus.map(s => `<option value="${s}">${s}</option>`).join('')}
+            </select>
+          </div>
+        </div>
+
+        <!-- Table -->
+        <div class="card overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Contact ID</th>
+                  <th>Store Name</th>
                   <th>Contact Person</th>
+                  <th>Phone</th>
                   <th>Location</th>
                   <th>Status</th>
                   <th>PIC</th>
-                  <th>Last Visit</th>
-                  <th>Action</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                ${db.toko.map(t => `
-                  <tr>
-                    <td class="font-mono text-xs text-slate-400">${t.id}</td>
-                    <td class="font-medium">${t.namaToko}</td>
-                    <td>${t.contactPerson}</td>
-                    <td>${t.location}</td>
-                    <td><span class="badge ${getBadgeClass(t.status)}">${t.status}</span></td>
-                    <td>${t.pic || '-'}</td>
-                    <td class="text-sm">${t.lastVisit || '-'}</td>
-                    <td>
-                      <div class="flex gap-1">
-                        <button onclick="viewToko('${t.id}')" class="p-2 hover:bg-slate-700 rounded text-slate-400 hover:text-white"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
-                        <button onclick="editToko('${t.id}')" class="p-2 hover:bg-slate-700 rounded text-slate-400 hover:text-white"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                        <button onclick="deleteToko('${t.id}')" class="p-2 hover:bg-red-900/50 text-red-400 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                      </div>
-                    </td>
-                  </tr>
-                `).join('')}
+              <tbody id="storesTableBody">
+                ${renderStoreRows(stores)}
               </tbody>
             </table>
           </div>
         </div>
-      `;
-    }
 
-    function openTokoModal(id = null) {
-      const t = id ? db.toko.find(x => x.id === id) : {};
-      const isEdit = !!id;
-      
-      const body = `
-        <div class="grid grid-cols-2 gap-4">
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm text-slate-400 mb-1">Contact ID *</label>
-            <input id="t-id" type="text" class="input-field" value="${t.id || ''}" ${isEdit ? 'readonly' : ''}>
-          </div>
-          <div class="col-span-2 sm:col-span-1">
-            <label class="block text-sm text-slate-400 mb-1">Nama Toko *</label>
-            <input id="t-nama" type="text" class="input-field" value="${t.namaToko || ''}">
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Contact Person</label>
-            <input id="t-cp" type="text" class="input-field" value="${t.contactPerson || ''}">
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Phone</label>
-            <input id="t-phone" type="text" class="input-field" value="${t.phone || ''}">
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Location</label>
-            <input id="t-loc" type="text" class="input-field" value="${t.location || ''}">
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Status</label>
-            <select id="t-status" class="input-field">
-              ${db.setup.statusToko.map(s => `<option ${t.status === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Jenis Kunjungan</label>
-            <select id="t-jenis" class="input-field">
-              ${db.setup.jenisKunjungan.map(s => `<option ${t.jenisKunjungan === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">PIC</label>
-            <select id="t-pic" class="input-field">
-              <option value="">Select...</option>
-              ${db.setup.users.map(s => `<option ${t.pic === s ? 'selected' : ''}>${s}</option>`).join('')}
-            </select>
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Target Kunjungan</label>
-            <input id="t-target" type="number" class="input-field" value="${t.targetKunjungan || 0}">
-          </div>
-          <div class="col-span-2">
-            <label class="block text-sm text-slate-400 mb-1">Maps Link</label>
-            <input id="t-maps" type="text" class="input-field" value="${t.mapsLink || ''}">
-          </div>
+        <div class="mt-4 text-sm text-[var(--fg-muted)]">
+          Showing ${stores.length} stores
         </div>
       `;
-
-      openModal(isEdit ? 'Edit Toko' : 'Add Toko', body, 
-        `<button onclick="closeModal()" class="btn btn-secondary">Cancel</button>
-         <button onclick="saveToko('${id || ''}')" class="btn btn-primary">${isEdit ? 'Update' : 'Save'}</button>`
-      );
     }
 
-    function saveToko(id) {
-      const data = {
-        id: document.getElementById('t-id').value,
-        namaToko: document.getElementById('t-nama').value,
-        contactPerson: document.getElementById('t-cp').value,
-        phone: document.getElementById('t-phone').value,
-        location: document.getElementById('t-loc').value,
-        status: document.getElementById('t-status').value,
-        jenisKunjungan: document.getElementById('t-jenis').value,
-        pic: document.getElementById('t-pic').value,
-        targetKunjungan: document.getElementById('t-target').value,
-        mapsLink: document.getElementById('t-maps').value,
-        kodeKontak: `${document.getElementById('t-id').value}-${document.getElementById('t-cp').value.split(' ')[0].toUpperCase()}`
+    function renderStoreRows(stores) {
+      return stores.map(s => `
+        <tr>
+          <td class="font-mono text-sm">${s.contactId}</td>
+          <td class="font-medium">${s.storeName}</td>
+          <td>${s.contactPerson}</td>
+          <td>${s.phone}</td>
+          <td>${s.location}</td>
+          <td><span class="badge ${s.storeStatus === 'Active' ? 'badge-success' : s.storeStatus === 'Inactive' ? 'badge-danger' : 'badge-warning'}">${s.storeStatus}</span></td>
+          <td>${s.assignedPIC}</td>
+          <td>
+            <div class="flex gap-2">
+              <button onclick="viewStore('${s.contactId}')" class="p-2 rounded hover:bg-[var(--bg-elevated)] text-[var(--fg-secondary)] hover:text-[var(--accent)]" title="View">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+              <button onclick="editStore('${s.contactId}')" class="p-2 rounded hover:bg-[var(--bg-elevated)] text-[var(--fg-secondary)] hover:text-[var(--fg-primary)]" title="Edit">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </button>
+              <button onclick="deleteStore('${s.contactId}')" class="p-2 rounded hover:bg-[var(--danger)]/20 text-[var(--danger)]" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterStores() {
+      const search = document.getElementById('storeSearch').value.toLowerCase();
+      const statusFilter = document.getElementById('storeStatusFilter').value;
+      
+      let stores = getData('crm_stores');
+      
+      if (search) {
+        stores = stores.filter(s => 
+          s.storeName.toLowerCase().includes(search) ||
+          s.contactPerson.toLowerCase().includes(search) ||
+          s.location.toLowerCase().includes(search) ||
+          s.contactId.toLowerCase().includes(search)
+        );
+      }
+      
+      if (statusFilter) {
+        stores = stores.filter(s => s.storeStatus === statusFilter);
+      }
+      
+      document.getElementById('storesTableBody').innerHTML = renderStoreRows(stores);
+    }
+
+    function openStoreModal(contactId = null) {
+      const stores = getData('crm_stores');
+      const setup = getData('crm_setup');
+      const isEdit = contactId !== null;
+      const store = isEdit ? stores.find(s => s.contactId === contactId) : null;
+      
+      const modalContent = `
+        <div class="p-6 border-b border-[var(--border)]">
+          <h3 class="font-display text-xl font-bold">${isEdit ? 'Edit Store' : 'Add New Store'}</h3>
+        </div>
+        <form onsubmit="saveStore(event, '${contactId || ''}')" class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Contact ID *</label>
+              <input type="text" name="contactId" class="form-input" value="${store?.contactId || ''}" ${isEdit ? 'readonly' : ''} required>
+            </div>
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Store Name *</label>
+              <input type="text" name="storeName" class="form-input" value="${store?.storeName || ''}" required>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Contact Person *</label>
+              <input type="text" name="contactPerson" class="form-input" value="${store?.contactPerson || ''}" required>
+            </div>
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Job Title</label>
+              <input type="text" name="jobTitle" class="form-input" value="${store?.jobTitle || ''}">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Phone Number *</label>
+              <input type="tel" name="phone" class="form-input" value="${store?.phone || ''}" required>
+            </div>
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Location *</label>
+              <input type="text" name="location" class="form-input" value="${store?.location || ''}" required>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Order Sequence</label>
+              <input type="number" name="orderSequence" class="form-input" value="${store?.orderSequence || '1'}" min="1">
+            </div>
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Store Status *</label>
+              <select name="storeStatus" class="form-input" required>
+                ${setup.storeStatus.map(s => `<option value="${s}" ${store?.storeStatus === s ? 'selected' : ''}>${s}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Visit Type</label>
+              <select name="visitType" class="form-input">
+                <option value="">Select Visit Type</option>
+                ${setup.visitTypes.map(v => `<option value="${v}" ${store?.visitType === v ? 'selected' : ''}>${v}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Assigned PIC</label>
+              <select name="assignedPIC" class="form-input">
+                <option value="">Select PIC</option>
+                ${setup.userList.map(u => `<option value="${u.name}" ${store?.assignedPIC === u.name ? 'selected' : ''}>${u.name}</option>`).join('')}
+              </select>
+            </div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Google Maps URL</label>
+              <input type="url" name="googleMapsUrl" class="form-input" value="${store?.googleMapsUrl || ''}" placeholder="https://maps.google.com/...">
+            </div>
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Visit Target (per month)</label>
+              <input type="number" name="visitTarget" class="form-input" value="${store?.visitTarget || '1'}" min="0">
+            </div>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="button" onclick="closeModal()" class="btn btn-secondary flex-1">Cancel</button>
+            <button type="submit" class="btn btn-primary flex-1">${isEdit ? 'Update' : 'Add Store'}</button>
+          </div>
+        </form>
+      `;
+      
+      document.getElementById('modalContent').innerHTML = modalContent;
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function saveStore(e, contactId) {
+      e.preventDefault();
+      const form = e.target;
+      
+      const store = {
+        contactId: form.contactId.value,
+        storeName: form.storeName.value,
+        contactPerson: form.contactPerson.value,
+        jobTitle: form.jobTitle.value,
+        phone: form.phone.value,
+        location: form.location.value,
+        orderSequence: parseInt(form.orderSequence.value) || 1,
+        storeStatus: form.storeStatus.value,
+        visitType: form.visitType.value,
+        assignedPIC: form.assignedPIC.value,
+        googleMapsUrl: form.googleMapsUrl.value,
+        visitTarget: parseInt(form.visitTarget.value) || 1,
+        lastVisitDate: '',
+        contactKey: `${form.contactId.value}-${form.contactPerson.value.split(' ')[0].toUpperCase()}`
       };
-
-      if(!data.id || !data.namaToko) return alert('ID and Nama Toko are required');
-
-      if(id) {
-        const idx = db.toko.findIndex(x => x.id === id);
-        data.lastVisit = db.toko[idx].lastVisit; // Preserve last visit
-        db.toko[idx] = data;
+      
+      const stores = getData('crm_stores');
+      
+      if (contactId) {
+        const index = stores.findIndex(s => s.contactId === contactId);
+        store.lastVisitDate = stores[index].lastVisitDate;
+        stores[index] = store;
       } else {
-        data.lastVisit = '';
-        db.toko.push(data);
+        stores.push(store);
       }
       
-      saveData();
+      setData('crm_stores', stores);
       closeModal();
-      navigate('daftar-toko');
+      renderStores(document.getElementById('pageContent'));
     }
 
-    function viewToko(id) {
-      const t = db.toko.find(x => x.id === id);
-      openModal(t.namaToko, `
-        <div class="grid grid-cols-2 gap-4 text-sm">
-          <div>Contact ID: <span class="font-mono text-slate-400">${t.id}</span></div>
-          <div>Status: <span class="badge ${getBadgeClass(t.status)}">${t.status}</span></div>
-          <div>Contact Person: <span class="text-slate-300">${t.contactPerson}</span></div>
-          <div>Phone: <span class="text-slate-300">${t.phone}</span></div>
-          <div class="col-span-2">Location: <span class="text-slate-300">${t.location}</span></div>
-          <div>PIC: <span class="text-slate-300">${t.pic || '-'}</span></div>
-          <div>Target: <span class="text-slate-300">${t.targetKunjungan || 0}</span></div>
-          <div class="col-span-2">
-            Last Visit: <span class="font-bold ${t.lastVisit ? 'text-green-400' : 'text-slate-500'}">${t.lastVisit || 'No record'}</span>
-            <br><span class="text-xs text-slate-500">(Auto-updated from Aktifitas)</span>
-          </div>
-          <div class="col-span-2">
-            ${t.mapsLink ? `<a href="${t.mapsLink}" target="_blank" class="text-blue-400 underline">Open Google Maps</a>` : ''}
-          </div>
+    function viewStore(contactId) {
+      const stores = getData('crm_stores');
+      const store = stores.find(s => s.contactId === contactId);
+      
+      const modalContent = `
+        <div class="p-6 border-b border-[var(--border)]">
+          <h3 class="font-display text-xl font-bold">${store.storeName}</h3>
+          <p class="text-[var(--fg-muted)]">${store.contactId}</p>
         </div>
-      `, `<button onclick="closeModal(); editToko('${t.id}')" class="btn btn-secondary">Edit</button><button onclick="closeModal()" class="btn btn-primary">Close</button>`);
-    }
-
-    function editToko(id) { openTokoModal(id); }
-
-    function deleteToko(id) {
-      if(confirm('Delete this store?')) {
-        db.toko = db.toko.filter(t => t.id !== id);
-        saveData();
-        navigate('daftar-toko');
-      }
-    }
-
-    // ==========================================
-    // VISIT PLAN MODULE
-    // ==========================================
-
-    function renderVisitPlan(el) {
-      // Auto-update statuses
-      db.visitPlan.forEach(v => {
-        v.status = calculateVisitStatus(v.planDate, v.actualDate);
-        v.daysUntilDue = calculateDaysDue(v.planDate);
-      });
-
-      el.innerHTML = `
-        <div class="flex justify-between items-center mb-6">
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Contact Person</p>
+              <p class="font-medium">${store.contactPerson}</p>
+            </div>
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Job Title</p>
+              <p class="font-medium">${store.jobTitle || '-'}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Phone</p>
+              <p class="font-medium">${store.phone}</p>
+            </div>
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Location</p>
+              <p class="font-medium">${store.location}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Status</p>
+              <span class="badge ${store.storeStatus === 'Active' ? 'badge-success' : store.storeStatus === 'Inactive' ? 'badge-danger' : 'badge-warning'}">${store.storeStatus}</span>
+            </div>
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Assigned PIC</p>
+              <p class="font-medium">${store.assignedPIC || '-'}</p>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Visit Type</p>
+              <p class="font-medium">${store.visitType || '-'}</p>
+            </div>
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Visit Target</p>
+              <p class="font-medium">${store.visitTarget || 0} per month</p>
+            </div>
+          </div>
           <div>
-            <h1 class="text-2xl font-bold text-white">Visit Plan</h1>
-            <p class="text-slate-400">Manage scheduled store visits.</p>
+            <p class="text-sm text-[var(--fg-muted)]">Last Visit Date</p>
+            <p class="font-medium">${store.lastVisitDate || 'No visits recorded'}</p>
           </div>
-          <button onclick="openVisitModal()" class="btn btn-primary">Plan Visit</button>
-        </div>
-
-        <div class="grid grid-cols-3 gap-4 mb-6">
-          <div class="card p-4 text-center">
-            <p class="text-slate-400 text-xs">Scheduled</p>
-            <p class="text-2xl font-bold text-yellow-400">${db.visitPlan.filter(v => v.status === 'Scheduled').length}</p>
-          </div>
-          <div class="card p-4 text-center">
-            <p class="text-slate-400 text-xs">Overdue</p>
-            <p class="text-2xl font-bold text-red-400">${db.visitPlan.filter(v => v.status === 'Overdue').length}</p>
-          </div>
-          <div class="card p-4 text-center">
-            <p class="text-slate-400 text-xs">Visited</p>
-            <p class="text-2xl font-bold text-green-400">${db.visitPlan.filter(v => v.status === 'Visited').length}</p>
+          ${store.googleMapsUrl ? `
+            <a href="${store.googleMapsUrl}" target="_blank" class="btn btn-secondary w-full justify-center">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+              </svg>
+              Open in Google Maps
+            </a>
+          ` : ''}
+          <div class="flex gap-3 pt-4">
+            <button onclick="closeModal()" class="btn btn-secondary flex-1">Close</button>
+            <button onclick="closeModal(); editStore('${contactId}')" class="btn btn-primary flex-1">Edit</button>
           </div>
         </div>
+      `;
+      
+      document.getElementById('modalContent').innerHTML = modalContent;
+      document.getElementById('modalOverlay').classList.add('active');
+    }
 
+    function editStore(contactId) {
+      openStoreModal(contactId);
+    }
+
+    function deleteStore(contactId) {
+      if (!confirm('Are you sure you want to delete this store? This action cannot be undone.')) return;
+      
+      const stores = getData('crm_stores');
+      const index = stores.findIndex(s => s.contactId === contactId);
+      stores.splice(index, 1);
+      setData('crm_stores', stores);
+      
+      renderStores(document.getElementById('pageContent'));
+    }
+
+    // ============================================
+    // VISIT PLAN MODULE
+    // ============================================
+    
+    function renderVisits(container) {
+      const visits = getData('crm_visits');
+      const setup = getData('crm_setup');
+      const today = new Date();
+      
+      // Update visit statuses
+      visits.forEach(v => {
+        const plannedDate = new Date(v.plannedDate);
+        if (v.status !== 'Visited') {
+          if (plannedDate < today) {
+            v.status = 'Overdue';
+          } else {
+            v.status = 'Scheduled';
+          }
+        }
+        v.daysUntilDue = Math.ceil((plannedDate - today) / (1000 * 60 * 60 * 24));
+      });
+      setData('crm_visits', visits);
+      
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 class="font-display text-3xl font-bold mb-2">Visit Plan</h1>
+            <p class="text-[var(--fg-secondary)]">Schedule and track store visits.</p>
+          </div>
+          <button onclick="openVisitModal()" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Plan Visit
+          </button>
+        </div>
+
+        <!-- Filters -->
+        <div class="card p-4 mb-6">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+              <input type="text" id="visitSearch" placeholder="Search visits..." class="form-input" oninput="filterVisits()">
+            </div>
+            <select id="visitPicFilter" class="form-input sm:w-40" onchange="filterVisits()">
+              <option value="">All PIC</option>
+              ${setup.userList.map(u => `<option value="${u.name}">${u.name}</option>`).join('')}
+            </select>
+            <select id="visitStatusFilter" class="form-input sm:w-40" onchange="filterVisits()">
+              <option value="">All Status</option>
+              <option value="Scheduled">Scheduled</option>
+              <option value="Visited">Visited</option>
+              <option value="Overdue">Overdue</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          <div class="kpi-card info p-4">
+            <p class="text-[var(--fg-muted)] text-sm">Scheduled</p>
+            <p class="font-display text-2xl font-bold">${visits.filter(v => v.status === 'Scheduled').length}</p>
+          </div>
+          <div class="kpi-card accent p-4">
+            <p class="text-[var(--fg-muted)] text-sm">Visited</p>
+            <p class="font-display text-2xl font-bold">${visits.filter(v => v.status === 'Visited').length}</p>
+          </div>
+          <div class="kpi-card danger p-4">
+            <p class="text-[var(--fg-muted)] text-sm">Overdue</p>
+            <p class="font-display text-2xl font-bold">${visits.filter(v => v.status === 'Overdue').length}</p>
+          </div>
+        </div>
+
+        <!-- Table -->
         <div class="card overflow-hidden">
-          <div class="table-container">
-            <table>
+          <div class="overflow-x-auto">
+            <table class="data-table">
               <thead>
                 <tr>
                   <th>Store</th>
+                  <th>Purpose</th>
                   <th>PIC</th>
-                  <th>Plan Date</th>
+                  <th>Planned Date</th>
                   <th>Priority</th>
                   <th>Status</th>
                   <th>Days Due</th>
-                  <th>Action</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                ${db.visitPlan.map(v => `
-                  <tr>
-                    <td>
-                      <p class="font-medium">${v.namaToko}</p>
-                      <p class="text-xs text-slate-500">${v.kontakToko}</p>
-                    </td>
-                    <td>${v.pic}</td>
-                    <td class="font-mono text-sm">${v.planDate}</td>
-                    <td><span class="badge ${v.priority === 'High' ? 'badge-red' : v.priority === 'Medium' ? 'badge-yellow' : 'badge-blue'}">${v.priority}</span></td>
-                    <td><span class="badge ${getBadgeClass(v.status)}">${v.status}</span></td>
-                    <td class="font-mono text-sm ${v.daysUntilDue < 0 ? 'text-red-400' : ''}">${v.daysUntilDue} d</td>
-                    <td>
-                      <div class="flex gap-1">
-                        ${v.status !== 'Visited' ? `<button onclick="markVisited('${v.id}')" class="p-2 hover:bg-green-900/30 text-green-400 rounded" title="Mark Visited"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg></button>` : ''}
-                        <button onclick="openVisitModal('${v.id}')" class="p-2 hover:bg-slate-700 rounded text-slate-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg></button>
-                      </div>
-                    </td>
-                  </tr>
-                `).join('')}
+              <tbody id="visitsTableBody">
+                ${renderVisitRows(visits)}
               </tbody>
             </table>
           </div>
         </div>
       `;
+    }
+
+    function renderVisitRows(visits) {
+      return visits.map(v => `
+        <tr>
+          <td class="font-medium">${v.storeName}</td>
+          <td>${v.visitPurpose}</td>
+          <td>${v.pic}</td>
+          <td>${v.plannedDate}</td>
+          <td><span class="badge ${v.priority === 'High' ? 'badge-danger' : v.priority === 'Medium' ? 'badge-warning' : 'badge-info'}">${v.priority}</span></td>
+          <td><span class="badge ${v.status === 'Visited' ? 'badge-success' : v.status === 'Overdue' ? 'badge-danger' : 'badge-warning'}">${v.status}</span></td>
+          <td class="${v.daysUntilDue < 0 ? 'text-[var(--danger)]' : v.daysUntilDue === 0 ? 'text-[var(--warning)]' : ''}">${v.daysUntilDue} days</td>
+          <td>
+            <div class="flex gap-2">
+              ${v.status !== 'Visited' ? `
+                <button onclick="completeVisit('${v.id}')" class="p-2 rounded hover:bg-[var(--accent)]/20 text-[var(--accent)]" title="Mark as Visited">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                  </svg>
+                </button>
+              ` : ''}
+              <button onclick="editVisit('${v.id}')" class="p-2 rounded hover:bg-[var(--bg-elevated)] text-[var(--fg-secondary)] hover:text-[var(--fg-primary)]" title="Edit">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
+                </svg>
+              </button>
+              <button onclick="deleteVisit('${v.id}')" class="p-2 rounded hover:bg-[var(--danger)]/20 text-[var(--danger)]" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
+            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function filterVisits() {
+      const search = document.getElementById('visitSearch').value.toLowerCase();
+      const picFilter = document.getElementById('visitPicFilter').value;
+      const statusFilter = document.getElementById('visitStatusFilter').value;
+      
+      let visits = getData('crm_visits');
+      
+      if (search) {
+        visits = visits.filter(v => 
+          v.storeName.toLowerCase().includes(search) ||
+          v.visitPurpose.toLowerCase().includes(search) ||
+          v.pic.toLowerCase().includes(search)
+        );
+      }
+      
+      if (picFilter) {
+        visits = visits.filter(v => v.pic === picFilter);
+      }
+      
+      if (statusFilter) {
+        visits = visits.filter(v => v.status === statusFilter);
+      }
+      
+      document.getElementById('visitsTableBody').innerHTML = renderVisitRows(visits);
     }
 
     function openVisitModal(id = null) {
-      const v = id ? db.visitPlan.find(x => x.id === id) : {};
-      const isEdit = !!id;
+      const visits = getData('crm_visits');
+      const stores = getData('crm_stores');
+      const setup = getData('crm_setup');
+      const isEdit = id !== null;
+      const visit = isEdit ? visits.find(v => v.id === id) : null;
       
-      const body = `
-        <div class="space-y-4">
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Store *</label>
-            <select id="v-toko" class="input-field" onchange="document.getElementById('v-toko-name').value = this.options[this.selectedIndex].dataset.name">
-              <option value="">Select...</option>
-              ${db.toko.map(t => `<option value="${t.id}" data-name="${t.namaToko}" ${v.kontakToko === t.id ? 'selected' : ''}>${t.namaToko}</option>`).join('')}
-            </select>
-            <input type="hidden" id="v-toko-name" value="${v.namaToko || ''}">
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Tujuan Kunjungan</label>
-              <input id="v-tujuan" type="text" class="input-field" value="${v.tujuanKunjungan || ''}">
-            </div>
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">PIC</label>
-              <select id="v-pic" class="input-field">
-                ${db.setup.users.map(u => `<option ${v.pic === u ? 'selected' : ''}>${u}</option>`).join('')}
-              </select>
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Plan Date</label>
-              <input id="v-plan" type="date" class="input-field" value="${v.planDate || getTodayStr()}">
-            </div>
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Priority</label>
-              <select id="v-priority" class="input-field">
-                <option ${v.priority === 'Low' ? 'selected' : ''}>Low</option>
-                <option ${v.priority === 'Medium' ? 'selected' : ''}>Medium</option>
-                <option ${v.priority === 'High' ? 'selected' : ''}>High</option>
-              </select>
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Keterangan</label>
-            <textarea id="v-ket" class="input-field" rows="2">${v.keterangan || ''}</textarea>
-          </div>
+      const modalContent = `
+        <div class="p-6 border-b border-[var(--border)]">
+          <h3 class="font-display text-xl font-bold">${isEdit ? 'Edit Visit' : 'Plan New Visit'}</h3>
         </div>
+        <form onsubmit="saveVisit(event, '${id || ''}')" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Store *</label>
+            <select name="storeId" class="form-input" required onchange="updateVisitStore(this)">
+              <option value="">Select Store</option>
+              ${stores.map(s => `<option value="${s.contactId}" data-name="${s.storeName}" ${visit?.storeId === s.contactId ? 'selected' : ''}>${s.storeName}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Visit Purpose *</label>
+            <input type="text" name="visitPurpose" class="form-input" value="${visit?.visitPurpose || ''}" required>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">PIC *</label>
+            <select name="pic" class="form-input" required>
+              <option value="">Select PIC</option>
+              ${setup.userList.map(u => `<option value="${u.name}" ${visit?.pic === u.name ? 'selected' : ''}>${u.name}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Planned Date *</label>
+            <input type="date" name="plannedDate" class="form-input" value="${visit?.plannedDate || ''}" required>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Priority</label>
+            <select name="priority" class="form-input">
+              <option value="Low" ${visit?.priority === 'Low' ? 'selected' : ''}>Low</option>
+              <option value="Medium" ${visit?.priority === 'Medium' || !visit ? 'selected' : ''}>Medium</option>
+              <option value="High" ${visit?.priority === 'High' ? 'selected' : ''}>High</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Notes</label>
+            <textarea name="notes" class="form-input" rows="3">${visit?.notes || ''}</textarea>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="button" onclick="closeModal()" class="btn btn-secondary flex-1">Cancel</button>
+            <button type="submit" class="btn btn-primary flex-1">${isEdit ? 'Update' : 'Plan Visit'}</button>
+          </div>
+        </form>
       `;
-
-      openModal(isEdit ? 'Edit Visit' : 'Plan Visit', body, 
-        `<button onclick="closeModal()" class="btn btn-secondary">Cancel</button>
-         <button onclick="saveVisit('${id || ''}')" class="btn btn-primary">${isEdit ? 'Update' : 'Save'}</button>`
-      );
+      
+      document.getElementById('modalContent').innerHTML = modalContent;
+      document.getElementById('modalOverlay').classList.add('active');
     }
 
-    function saveVisit(id) {
-      const sel = document.getElementById('v-toko');
-      const data = {
-        id: id || 'VP' + Date.now(),
-        kontakToko: sel.value,
-        namaToko: sel.options[sel.selectedIndex].dataset.name,
-        tujuanKunjungan: document.getElementById('v-tujuan').value,
-        pic: document.getElementById('v-pic').value,
-        planDate: document.getElementById('v-plan').value,
-        priority: document.getElementById('v-priority').value,
-        keterangan: document.getElementById('v-ket').value,
-        actualDate: ''
+    function saveVisit(e, id) {
+      e.preventDefault();
+      const form = e.target;
+      const storeSelect = form.storeId;
+      const selectedOption = storeSelect.options[storeSelect.selectedIndex];
+      
+      const today = new Date();
+      const plannedDate = new Date(form.plannedDate.value);
+      
+      const visit = {
+        id: id || generateId('VP'),
+        storeId: form.storeId.value,
+        storeName: selectedOption.dataset.name || '',
+        visitPurpose: form.visitPurpose.value,
+        pic: form.pic.value,
+        plannedDate: form.plannedDate.value,
+        actualVisitDate: '',
+        priority: form.priority.value,
+        status: 'Scheduled',
+        notes: form.notes.value,
+        daysUntilDue: Math.ceil((plannedDate - today) / (1000 * 60 * 60 * 24))
       };
-
-      if(id) {
-        const idx = db.visitPlan.findIndex(x => x.id === id);
-        data.actualDate = db.visitPlan[idx].actualDate; // Preserve actual
-        db.visitPlan[idx] = data;
+      
+      const visits = getData('crm_visits');
+      
+      if (id) {
+        const index = visits.findIndex(v => v.id === id);
+        visits[index] = { ...visits[index], ...visit };
       } else {
-        db.visitPlan.push(data);
+        visits.push(visit);
       }
       
-      saveData();
+      setData('crm_visits', visits);
       closeModal();
-      navigate('visit-plan');
+      renderVisits(document.getElementById('pageContent'));
     }
 
-    function markVisited(id) {
-      const v = db.visitPlan.find(x => x.id === id);
-      v.actualDate = getTodayStr();
-      v.status = 'Visited';
-      
-      // Update Last Visit in Toko
-      const t = db.toko.find(x => x.id === v.kontakToko);
-      if(t) t.lastVisit = v.actualDate;
-      
-      saveData();
-      navigate('visit-plan');
-      toast('Visit marked as completed');
+    function editVisit(id) {
+      openVisitModal(id);
     }
 
-    // ==========================================
-    // AKTIFITAS MODULE
-    // ==========================================
+    function deleteVisit(id) {
+      if (!confirm('Are you sure you want to delete this visit?')) return;
+      
+      const visits = getData('crm_visits');
+      const index = visits.findIndex(v => v.id === id);
+      visits.splice(index, 1);
+      setData('crm_visits', visits);
+      
+      renderVisits(document.getElementById('pageContent'));
+    }
 
-    function renderAktifitas(el) {
-      el.innerHTML = `
-        <div class="flex justify-between items-center mb-6">
+    function completeVisit(id) {
+      const visits = getData('crm_visits');
+      const visit = visits.find(v => v.id === id);
+      visit.status = 'Visited';
+      visit.actualVisitDate = formatDate(new Date());
+      setData('crm_visits', visits);
+      
+      // Update store last visit date
+      const stores = getData('crm_stores');
+      const store = stores.find(s => s.contactId === visit.storeId);
+      if (store) {
+        store.lastVisitDate = visit.actualVisitDate;
+        setData('crm_stores', stores);
+      }
+      
+      renderVisits(document.getElementById('pageContent'));
+    }
+
+    // ============================================
+    // ACTIVITIES MODULE
+    // ============================================
+    
+    function renderActivities(container) {
+      const activities = getData('crm_activities');
+      const setup = getData('crm_setup');
+      
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h1 class="text-2xl font-bold text-white">Aktifitas</h1>
-            <p class="text-slate-400">Record actual visit activities.</p>
+            <h1 class="font-display text-3xl font-bold mb-2">Activities</h1>
+            <p class="text-[var(--fg-secondary)]">Record and track store visit activities.</p>
           </div>
-          <button onclick="openAktifitasModal()" class="btn btn-primary">Log Activity</button>
+          <button onclick="openActivityModal()" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Log Activity
+          </button>
         </div>
 
+        <!-- Filters -->
+        <div class="card p-4 mb-6">
+          <div class="flex flex-col sm:flex-row gap-4">
+            <div class="flex-1">
+              <input type="text" id="activitySearch" placeholder="Search activities..." class="form-input" oninput="filterActivities()">
+            </div>
+            <input type="date" id="activityDateFilter" class="form-input sm:w-44" onchange="filterActivities()">
+          </div>
+        </div>
+
+        <!-- Table -->
         <div class="card overflow-hidden">
-          <div class="table-container">
-            <table>
+          <div class="overflow-x-auto">
+            <table class="data-table">
               <thead>
                 <tr>
-                  <th>Date</th>
                   <th>Store</th>
+                  <th>Visit Date</th>
+                  <th>Visit Type</th>
                   <th>Activity</th>
-                  <th>Jenis</th>
                   <th>Sampling</th>
-                  <th>Action</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                ${db.aktifitas.map(a => `
-                  <tr>
-                    <td class="font-mono text-sm">${a.tanggalKunjungan}</td>
-                    <td>
-                      <p class="font-medium">${a.namaToko}</p>
-                      <p class="text-xs text-slate-500">${a.kontakToko}</p>
-                    </td>
-                    <td>${a.aktifitas}</td>
-                    <td><span class="badge badge-blue">${a.jenisKunjungan}</span></td>
-                    <td>${a.kategoriSampling || '-'}</td>
-                    <td>
-                      <div class="flex gap-1">
-                        <button onclick="viewAktifitas('${a.id}')" class="p-2 hover:bg-slate-700 rounded text-slate-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
-                        <button onclick="deleteAktifitas('${a.id}')" class="p-2 hover:bg-red-900/50 text-red-400 rounded"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button>
-                      </div>
-                    </td>
-                  </tr>
-                `).join('')}
+              <tbody id="activitiesTableBody">
+                ${renderActivityRows(activities)}
               </tbody>
             </table>
           </div>
@@ -874,164 +1768,333 @@
       `;
     }
 
-    function openAktifitasModal() {
-      const body = `
-        <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Store *</label>
-              <select id="a-toko" class="input-field" onchange="document.getElementById('a-toko-name').value = this.options[this.selectedIndex].dataset.name">
-                <option value="">Select...</option>
-                ${db.toko.map(t => `<option value="${t.id}" data-name="${t.namaToko}">${t.namaToko}</option>`).join('')}
-              </select>
-              <input type="hidden" id="a-toko-name">
+    function renderActivityRows(activities) {
+      return activities.map(a => `
+        <tr>
+          <td class="font-medium">${a.storeName}</td>
+          <td>${a.visitDate}</td>
+          <td><span class="badge badge-info">${a.visitType}</span></td>
+          <td>${a.activity}</td>
+          <td>${a.samplingCategory || '-'}</td>
+          <td><span class="badge badge-success">${a.status}</span></td>
+          <td>
+            <div class="flex gap-2">
+              <button onclick="viewActivity('${a.id}')" class="p-2 rounded hover:bg-[var(--bg-elevated)] text-[var(--fg-secondary)] hover:text-[var(--accent)]" title="View">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+              <button onclick="deleteActivity('${a.id}')" class="p-2 rounded hover:bg-[var(--danger)]/20 text-[var(--danger)]" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
             </div>
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Tanggal *</label>
-              <input id="a-date" type="date" class="input-field" value="${getTodayStr()}">
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Jenis Kunjungan</label>
-              <select id="a-jenis" class="input-field">
-                ${db.setup.jenisKunjungan.map(j => `<option>${j}</option>`).join('')}
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Aktifitas *</label>
-              <input id="a-akt" type="text" class="input-field" placeholder="e.g. Sales Visit">
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Kategori Sampling</label>
-              <select id="a-kat" class="input-field">
-                <option value="">None</option>
-                ${db.setup.kategoriSampling.map(k => `<option>${k}</option>`).join('')}
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Size</label>
-              <input id="a-size" type="text" class="input-field" placeholder="e.g. 50ml">
-            </div>
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Keluhan & Feedback</label>
-            <textarea id="a-feedback" class="input-field" rows="2"></textarea>
-          </div>
-          <div>
-            <label class="block text-sm text-slate-400 mb-1">Keterangan</label>
-            <textarea id="a-ket" class="input-field" rows="2"></textarea>
-          </div>
-        </div>
-      `;
-
-      openModal('Log Activity', body, 
-        `<button onclick="closeModal()" class="btn btn-secondary">Cancel</button>
-         <button onclick="saveAktifitas()" class="btn btn-primary">Save</button>`
-      );
+          </td>
+        </tr>
+      `).join('');
     }
 
-    function saveAktifitas() {
-      const sel = document.getElementById('a-toko');
-      const data = {
-        id: 'ACT' + Date.now(),
-        kontakToko: sel.value,
-        namaToko: sel.options[sel.selectedIndex].dataset.name,
-        tanggalKunjungan: document.getElementById('a-date').value,
-        jenisKunjungan: document.getElementById('a-jenis').value,
-        aktifitas: document.getElementById('a-akt').value,
-        kategoriSampling: document.getElementById('a-kat').value,
-        size: document.getElementById('a-size').value,
-        keluhan: document.getElementById('a-feedback').value,
-        keterangan: document.getElementById('a-ket').value,
+    function filterActivities() {
+      const search = document.getElementById('activitySearch').value.toLowerCase();
+      const dateFilter = document.getElementById('activityDateFilter').value;
+      
+      let activities = getData('crm_activities');
+      
+      if (search) {
+        activities = activities.filter(a => 
+          a.storeName.toLowerCase().includes(search) ||
+          a.activity.toLowerCase().includes(search)
+        );
+      }
+      
+      if (dateFilter) {
+        activities = activities.filter(a => a.visitDate === dateFilter);
+      }
+      
+      document.getElementById('activitiesTableBody').innerHTML = renderActivityRows(activities);
+    }
+
+    function openActivityModal(id = null) {
+      const activities = getData('crm_activities');
+      const stores = getData('crm_stores');
+      const setup = getData('crm_setup');
+      const isEdit = id !== null;
+      const activity = isEdit ? activities.find(a => a.id === id) : null;
+      
+      const modalContent = `
+        <div class="p-6 border-b border-[var(--border)]">
+          <h3 class="font-display text-xl font-bold">${isEdit ? 'Edit Activity' : 'Log New Activity'}</h3>
+        </div>
+        <form onsubmit="saveActivity(event, '${id || ''}')" class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Store *</label>
+            <select name="storeId" class="form-input" required onchange="updateActivityStore(this)">
+              <option value="">Select Store</option>
+              ${stores.map(s => `<option value="${s.contactId}" data-name="${s.storeName}" ${activity?.storeId === s.contactId ? 'selected' : ''}>${s.storeName}</option>`).join('')}
+            </select>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Visit Date *</label>
+              <input type="date" name="visitDate" class="form-input" value="${activity?.visitDate || formatDate(new Date())}" required>
+            </div>
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Order Sequence</label>
+              <input type="number" name="orderSequence" class="form-input" value="${activity?.orderSequence || '1'}" min="1">
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Visit Type *</label>
+              <select name="visitType" class="form-input" required>
+                <option value="">Select Type</option>
+                ${setup.visitTypes.map(v => `<option value="${v}" ${activity?.visitType === v ? 'selected' : ''}>${v}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Activity *</label>
+              <input type="text" name="activity" class="form-input" value="${activity?.activity || ''}" required>
+            </div>
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Sampling Category</label>
+              <select name="samplingCategory" class="form-input">
+                <option value="">None</option>
+                ${setup.samplingCategories.map(c => `<option value="${c}" ${activity?.samplingCategory === c ? 'selected' : ''}>${c}</option>`).join('')}
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm text-[var(--fg-secondary)] mb-2">Product Size</label>
+              <input type="text" name="productSize" class="form-input" value="${activity?.productSize || ''}" placeholder="e.g., 50ml">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Sample Description</label>
+            <input type="text" name="sampleDescription" class="form-input" value="${activity?.sampleDescription || ''}">
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Complaint & Feedback</label>
+            <textarea name="complaintFeedback" class="form-input" rows="2">${activity?.complaintFeedback || ''}</textarea>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Notes</label>
+            <textarea name="notes" class="form-input" rows="3">${activity?.notes || ''}</textarea>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="button" onclick="closeModal()" class="btn btn-secondary flex-1">Cancel</button>
+            <button type="submit" class="btn btn-primary flex-1">${isEdit ? 'Update' : 'Log Activity'}</button>
+          </div>
+        </form>
+      `;
+      
+      document.getElementById('modalContent').innerHTML = modalContent;
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function saveActivity(e, id) {
+      e.preventDefault();
+      const form = e.target;
+      const storeSelect = form.storeId;
+      const selectedOption = storeSelect.options[storeSelect.selectedIndex];
+      
+      const activity = {
+        id: id || generateId('ACT'),
+        storeId: form.storeId.value,
+        storeName: selectedOption.dataset.name || '',
+        visitDate: form.visitDate.value,
+        orderSequence: parseInt(form.orderSequence.value) || 1,
+        visitType: form.visitType.value,
+        activity: form.activity.value,
+        samplingCategory: form.samplingCategory.value,
+        sampleDescription: form.sampleDescription.value,
+        productSize: form.productSize.value,
+        complaintFeedback: form.complaintFeedback.value,
+        photoAttachment: '',
+        notes: form.notes.value,
         status: 'Completed'
       };
-
-      if(!data.kontakToko || !data.tanggalKunjungan || !data.aktifitas) return alert('Please fill required fields');
-
-      db.aktifitas.unshift(data);
-
-      // BUSINESS RULE: Update Last Visit in Daftar Toko
-      const t = db.toko.find(x => x.id === data.kontakToko);
-      if(t) t.lastVisit = data.tanggalKunjungan;
       
-      // Update Visit Plan Status if exists
-      const v = db.visitPlan.find(x => x.kontakToko === data.kontakToko && !x.actualDate);
-      if(v) {
-        v.actualDate = data.tanggalKunjungan;
-        v.status = 'Visited';
+      const activities = getData('crm_activities');
+      
+      if (id) {
+        const index = activities.findIndex(a => a.id === id);
+        activities[index] = activity;
+      } else {
+        activities.unshift(activity);
       }
-
-      saveData();
+      
+      setData('crm_activities', activities);
+      
+      // Update store last visit date
+      const stores = getData('crm_stores');
+      const store = stores.find(s => s.contactId === activity.storeId);
+      if (store) {
+        store.lastVisitDate = activity.visitDate;
+        setData('crm_stores', stores);
+      }
+      
+      // Update visit plan if exists
+      const visits = getData('crm_visits');
+      const visit = visits.find(v => v.storeId === activity.storeId && v.status !== 'Visited');
+      if (visit) {
+        visit.status = 'Visited';
+        visit.actualVisitDate = activity.visitDate;
+        setData('crm_visits', visits);
+      }
+      
       closeModal();
-      navigate('aktifitas');
-      toast('Activity saved & Last Visit updated');
+      renderActivities(document.getElementById('pageContent'));
     }
 
-    function viewAktifitas(id) {
-      const a = db.aktifitas.find(x => x.id === id);
-      openModal(a.namaToko, `
-        <div class="space-y-3 text-sm">
-          <div class="flex justify-between"><span class="text-slate-400">Date:</span><span class="font-mono">${a.tanggalKunjungan}</span></div>
-          <div class="flex justify-between"><span class="text-slate-400">Activity:</span><span>${a.aktifitas}</span></div>
-          <div class="flex justify-between"><span class="text-slate-400">Jenis:</span><span>${a.jenisKunjungan}</span></div>
-          ${a.kategoriSampling ? `<div class="flex justify-between"><span class="text-slate-400">Sampling:</span><span>${a.kategoriSampling} (${a.size})</span></div>` : ''}
-          ${a.keluhan ? `<div class="bg-yellow-900/20 p-2 rounded border border-yellow-800"><span class="text-yellow-400 text-xs">Feedback:</span><p>${a.keluhan}</p></div>` : ''}
-          ${a.keterangan ? `<p class="text-slate-300 mt-2">${a.keterangan}</p>` : ''}
+    function viewActivity(id) {
+      const activities = getData('crm_activities');
+      const activity = activities.find(a => a.id === id);
+      
+      const modalContent = `
+        <div class="p-6 border-b border-[var(--border)]">
+          <h3 class="font-display text-xl font-bold">${activity.storeName}</h3>
+          <p class="text-[var(--fg-muted)]">${activity.visitDate}</p>
         </div>
-      `, `<button onclick="closeModal()" class="btn btn-primary">Close</button>`);
-    }
-
-    function deleteAktifitas(id) {
-      if(confirm('Delete this activity?')) {
-        db.aktifitas = db.aktifitas.filter(a => a.id !== id);
-        saveData();
-        navigate('aktifitas');
-      }
-    }
-
-    // ==========================================
-    // INTELEGENCE REPORT MODULE
-    // ==========================================
-
-    function renderInteligence(el) {
-      el.innerHTML = `
-        <div class="flex justify-between items-center mb-6">
-          <div>
-            <h1 class="text-2xl font-bold text-white">Intelegence Report</h1>
-            <p class="text-slate-400">Competitor activity monitoring.</p>
+        <div class="p-6 space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Visit Type</p>
+              <p class="font-medium">${activity.visitType}</p>
+            </div>
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Activity</p>
+              <p class="font-medium">${activity.activity}</p>
+            </div>
           </div>
-          <button onclick="openInteligenceModal()" class="btn btn-primary">Add Report</button>
+          ${activity.samplingCategory ? `
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <p class="text-sm text-[var(--fg-muted)]">Sampling Category</p>
+                <p class="font-medium">${activity.samplingCategory}</p>
+              </div>
+              <div>
+                <p class="text-sm text-[var(--fg-muted)]">Product Size</p>
+                <p class="font-medium">${activity.productSize || '-'}</p>
+              </div>
+            </div>
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Sample Description</p>
+              <p class="font-medium">${activity.sampleDescription || '-'}</p>
+            </div>
+          ` : ''}
+          ${activity.complaintFeedback ? `
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Complaint & Feedback</p>
+              <p class="font-medium text-[var(--warning)]">${activity.complaintFeedback}</p>
+            </div>
+          ` : ''}
+          ${activity.notes ? `
+            <div>
+              <p class="text-sm text-[var(--fg-muted)]">Notes</p>
+              <p class="font-medium">${activity.notes}</p>
+            </div>
+          ` : ''}
+          <div class="flex gap-3 pt-4">
+            <button onclick="closeModal()" class="btn btn-secondary flex-1">Close</button>
+          </div>
+        </div>
+      `;
+      
+      document.getElementById('modalContent').innerHTML = modalContent;
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function deleteActivity(id) {
+      if (!confirm('Are you sure you want to delete this activity?')) return;
+      
+      const activities = getData('crm_activities');
+      const index = activities.findIndex(a => a.id === id);
+      activities.splice(index, 1);
+      setData('crm_activities', activities);
+      
+      renderActivities(document.getElementById('pageContent'));
+    }
+
+    // ============================================
+    // INTELLIGENCE REPORT MODULE
+    // ============================================
+    
+    function renderIntelligence(container) {
+      const intelligence = getData('crm_intelligence');
+      const setup = getData('crm_setup');
+      
+      // Calculate competitor stats
+      const competitorCounts = {};
+      const activityCounts = {};
+      intelligence.forEach(i => {
+        competitorCounts[i.competitor] = (competitorCounts[i.competitor] || 0) + 1;
+        activityCounts[i.competitorActivity] = (activityCounts[i.competitorActivity] || 0) + 1;
+      });
+      
+      container.innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+          <div>
+            <h1 class="font-display text-3xl font-bold mb-2">Intelligence Report</h1>
+            <p class="text-[var(--fg-secondary)]">Track competitor activities and market intelligence.</p>
+          </div>
+          <button onclick="openIntelModal()" class="btn btn-primary">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+            </svg>
+            Add Report
+          </button>
         </div>
 
+        <!-- Competitor Summary -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+          <div class="card p-6">
+            <h3 class="font-display font-semibold mb-4">Competitor Activity Count</h3>
+            <div class="space-y-3">
+              ${Object.entries(competitorCounts).sort((a,b) => b[1] - a[1]).map(([name, count]) => `
+                <div class="flex items-center justify-between">
+                  <span class="text-[var(--fg-secondary)]">${name}</span>
+                  <div class="flex items-center gap-3">
+                    <div class="chart-bar w-32">
+                      <div class="chart-bar-fill bg-[var(--accent)]" style="width: ${(count / Math.max(...Object.values(competitorCounts))) * 100}%"></div>
+                    </div>
+                    <span class="font-medium w-8 text-right">${count}</span>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+          
+          <div class="card p-6">
+            <h3 class="font-display font-semibold mb-4">Activity Types</h3>
+            <div class="space-y-3">
+              ${Object.entries(activityCounts).sort((a,b) => b[1] - a[1]).map(([name, count]) => `
+                <div class="flex items-center justify-between">
+                  <span class="text-[var(--fg-secondary)]">${name}</span>
+                  <span class="badge badge-warning">${count}</span>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Reports Table -->
         <div class="card overflow-hidden">
-          <div class="table-container">
-            <table>
+          <div class="overflow-x-auto">
+            <table class="data-table">
               <thead>
                 <tr>
                   <th>Date</th>
                   <th>Store</th>
-                  <th>Kompetitor</th>
-                  <th>Activity</th>
-                  <th>Detail</th>
-                  <th>Action</th>
+                  <th>Competitor</th>
+                  <th>Activity Type</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
-              <tbody>
-                ${db.inteligence.map(i => `
-                  <tr>
-                    <td class="font-mono text-sm">${i.date}</td>
-                    <td class="font-medium">${i.namaToko}</td>
-                    <td><span class="badge badge-red">${i.kompetitor}</span></td>
-                    <td>${i.aktivitasKompetitor}</td>
-                    <td class="truncate max-w-xs text-slate-400">${i.keterangan}</td>
-                    <td>
-                      <button onclick="viewInteligence('${i.id}')" class="p-2 hover:bg-slate-700 rounded text-slate-400"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg></button>
-                    </td>
-                  </tr>
-                `).join('')}
+              <tbody id="intelTableBody">
+                ${renderIntelRows(intelligence)}
               </tbody>
             </table>
           </div>
@@ -1039,84 +2102,198 @@
       `;
     }
 
-    function openInteligenceModal() {
-      const body = `
-        <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Date</label>
-              <input id="i-date" type="date" class="input-field" value="${getTodayStr()}">
+    function renderIntelRows(intelligence) {
+      return intelligence.map(i => `
+        <tr>
+          <td>${i.date}</td>
+          <td class="font-medium">${i.storeName}</td>
+          <td><span class="badge badge-danger">${i.competitor}</span></td>
+          <td>${i.competitorActivity}</td>
+          <td>
+            <div class="flex gap-2">
+              <button onclick="viewIntel('${i.id}')" class="p-2 rounded hover:bg-[var(--bg-elevated)] text-[var(--fg-secondary)] hover:text-[var(--accent)]" title="View">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                </svg>
+              </button>
+              <button onclick="deleteIntel('${i.id}')" class="p-2 rounded hover:bg-[var(--danger)]/20 text-[var(--danger)]" title="Delete">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                </svg>
+              </button>
             </div>
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Store *</label>
-              <select id="i-toko" class="input-field" onchange="document.getElementById('i-toko-name').value = this.options[this.selectedIndex].dataset.name">
-                <option value="">Select...</option>
-                ${db.toko.map(t => `<option value="${t.id}" data-name="${t.namaToko}">${t.namaToko}</option>`).join('')}
-              </select>
-              <input type="hidden" id="i-toko-name">
-            </div>
-          </div>
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Kompetitor *</label>
-              <select id="i-komp" class="input-field">
-                ${db.setup.kompetitor.map(k => `<option>${k}</option>`).join('')}
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm text-slate-400 mb-1">Aktivitas Kompetitor</label>
-              <input id="i-akt" type="text" class="input-field" placeholder="e.g. Promo, Price Drop">
-            </div>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openIntelModal(id = null) {
+      const intelligence = getData('crm_intelligence');
+      const stores = getData('crm_stores');
+      const setup = getData('crm_setup');
+      const isEdit = id !== null;
+      const intel = isEdit ? intelligence.find(i => i.id === id) : null;
+      
+      const modalContent = `
+        <div class="p-6 border-b border-[var(--border)]">
+          <h3 class="font-display text-xl font-bold">${isEdit ? 'Edit Report' : 'New Intelligence Report'}</h3>
+        </div>
+        <form onsubmit="saveIntel(event, '${id || ''}')" class="p-6 space-y-4">
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Date *</label>
+            <input type="date" name="date" class="form-input" value="${intel?.date || formatDate(new Date())}" required>
           </div>
           <div>
-            <label class="block text-sm text-slate-400 mb-1">Keterangan Detail *</label>
-            <textarea id="i-ket" class="input-field" rows="3"></textarea>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Store *</label>
+            <select name="storeId" class="form-input" required onchange="updateIntelStore(this)">
+              <option value="">Select Store</option>
+              ${stores.map(s => `<option value="${s.contactId}" data-name="${s.storeName}" ${intel?.storeId === s.contactId ? 'selected' : ''}>${s.storeName}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Competitor *</label>
+            <select name="competitor" class="form-input" required>
+              <option value="">Select Competitor</option>
+              ${setup.competitorList.map(c => `<option value="${c}" ${intel?.competitor === c ? 'selected' : ''}>${c}</option>`).join('')}
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Competitor Activity *</label>
+            <input type="text" name="competitorActivity" class="form-input" value="${intel?.competitorActivity || ''}" placeholder="e.g., Price Reduction, New Product Launch" required>
+          </div>
+          <div>
+            <label class="block text-sm text-[var(--fg-secondary)] mb-2">Detailed Notes *</label>
+            <textarea name="detailedNotes" class="form-input" rows="4" required>${intel?.detailedNotes || ''}</textarea>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button type="button" onclick="closeModal()" class="btn btn-secondary flex-1">Cancel</button>
+            <button type="submit" class="btn btn-primary flex-1">${isEdit ? 'Update' : 'Submit Report'}</button>
+          </div>
+        </form>
+      `;
+      
+      document.getElementById('modalContent').innerHTML = modalContent;
+      document.getElementById('modalOverlay').classList.add('active');
+    }
+
+    function saveIntel(e, id) {
+      e.preventDefault();
+      const form = e.target;
+      const storeSelect = form.storeId;
+      const selectedOption = storeSelect.options[storeSelect.selectedIndex];
+      
+      const intel = {
+        id: id || generateId('INT'),
+        date: form.date.value,
+        storeId: form.storeId.value,
+        storeName: selectedOption.dataset.name || '',
+        competitor: form.competitor.value,
+        competitorActivity: form.competitorActivity.value,
+        detailedNotes: form.detailedNotes.value
+      };
+      
+      const intelligence = getData('crm_intelligence');
+      
+      if (id) {
+        const index = intelligence.findIndex(i => i.id === id);
+        intelligence[index] = intel;
+      } else {
+        intelligence.unshift(intel);
+      }
+      
+      setData('crm_intelligence', intelligence);
+      closeModal();
+      renderIntelligence(document.getElementById('pageContent'));
+    }
+
+    function viewIntel(id) {
+      const intelligence = getData('crm_intelligence');
+      const intel = intelligence.find(i => i.id === id);
+      
+      const modalContent = `
+        <div class="p-6 border-b border-[var(--border)]">
+          <h3 class="font-display text-xl font-bold">${intel.competitor}</h3>
+          <p class="text-[var(--fg-muted)]">${intel.date} - ${intel.storeName}</p>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <p class="text-sm text-[var(--fg-muted)]">Activity Type</p>
+            <p class="font-medium">${intel.competitorActivity}</p>
+          </div>
+          <div>
+            <p class="text-sm text-[var(--fg-muted)]">Detailed Notes</p>
+            <p class="font-medium">${intel.detailedNotes}</p>
+          </div>
+          <div class="flex gap-3 pt-4">
+            <button onclick="closeModal()" class="btn btn-secondary flex-1">Close</button>
           </div>
         </div>
       `;
-
-      openModal('Add Intelligence Report', body, 
-        `<button onclick="closeModal()" class="btn btn-secondary">Cancel</button>
-         <button onclick="saveInteligence()" class="btn btn-primary">Save</button>`
-      );
+      
+      document.getElementById('modalContent').innerHTML = modalContent;
+      document.getElementById('modalOverlay').classList.add('active');
     }
 
-    function saveInteligence() {
-      const sel = document.getElementById('i-toko');
-      const data = {
-        id: 'INT' + Date.now(),
-        date: document.getElementById('i-date').value,
-        kontakToko: sel.value,
-        namaToko: sel.options[sel.selectedIndex].dataset.name,
-        kompetitor: document.getElementById('i-komp').value,
-        aktivitasKompetitor: document.getElementById('i-akt').value,
-        keterangan: document.getElementById('i-ket').value
-      };
-
-      if(!data.kontakToko || !data.keterangan) return alert('Please fill required fields');
-
-      db.inteligence.unshift(data);
-      saveData();
-      closeModal();
-      navigate('inteligence');
+    function deleteIntel(id) {
+      if (!confirm('Are you sure you want to delete this report?')) return;
+      
+      const intelligence = getData('crm_intelligence');
+      const index = intelligence.findIndex(i => i.id === id);
+      intelligence.splice(index, 1);
+      setData('crm_intelligence', intelligence);
+      
+      renderIntelligence(document.getElementById('pageContent'));
     }
 
-    function viewInteligence(id) {
-      const i = db.inteligence.find(x => x.id === id);
-      openModal(`Report: ${i.kompetitor}`, `
-        <div class="space-y-2 text-sm">
-          <p><span class="text-slate-400">Store:</span> ${i.namaToko}</p>
-          <p><span class="text-slate-400">Activity:</span> ${i.aktivitasKompetitor}</p>
-          <div class="mt-4 p-3 bg-slate-800 rounded-lg">
-            <p class="text-slate-300">${i.keterangan}</p>
-          </div>
-        </div>
-      `, `<button onclick="closeModal()" class="btn btn-primary">Close</button>`);
+    // ============================================
+    // MODAL & MOBILE SIDEBAR
+    // ============================================
+    
+    function closeModal() {
+      document.getElementById('modalOverlay').classList.remove('active');
     }
 
-    // Initialize Application
-    initApp();
+    function toggleMobileSidebar() {
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebarOverlay');
+      sidebar.classList.toggle('open');
+      overlay.classList.toggle('hidden');
+    }
 
+    function closeMobileSidebar() {
+      document.getElementById('sidebar').classList.remove('open');
+      document.getElementById('sidebarOverlay').classList.add('hidden');
+    }
+
+    // Close modal on overlay click
+    document.getElementById('modalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeModal();
+    });
+
+    // Mobile menu button
+    document.getElementById('mobileMenuBtn').addEventListener('click', toggleMobileSidebar);
+
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') {
+        closeModal();
+        closeMobileSidebar();
+      }
+    });
+
+    // ============================================
+    // INITIALIZATION
+    // ============================================
+    
+    // Initialize data on first load
+    initializeData();
+    
+    // Set initial nav state
+    document.querySelector('[data-page="dashboard"]').classList.add('active');
+    
+    // Render initial page
+    renderPage('dashboard');
   </script>
 </body>
 </html>
