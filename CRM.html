@@ -1,0 +1,629 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retail Support System - Complete Build</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f1f5f9;
+            --sidebar-bg: #0f172a;
+            --card-bg: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --accent: #0ea5e9;
+            --border: #e2e8f0;
+        }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-color); color: var(--text-primary); }
+        h1, h2, h3, .logo-text { font-family: 'JetBrains Mono', monospace; }
+        
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        .data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .data-table th { background: #f8fafc; padding: 10px 16px; text-align: left; font-weight: 600; color: var(--text-secondary); border-bottom: 2px solid var(--border); white-space: nowrap; position: sticky; top: 0; z-index: 10; }
+        .data-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+        .data-table tr:hover td { background: #f8fafc; }
+        
+        .input-field { width: 100%; padding: 8px 12px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.875rem; transition: all 0.2s; background: white; }
+        .input-field:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1); }
+        
+        .status-pill { padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+        .status-active { background: #dcfce7; color: #166534; }
+        .status-visited { background: #dbeafe; color: #1e40af; }
+        .status-overdue { background: #fee2e2; color: #991b1b; }
+        .status-planned { background: #f3f4f6; color: #374151; }
+
+        .sidebar { width: 260px; height: 100vh; background: var(--sidebar-bg); color: white; position: fixed; left: 0; top: 0; display: flex; flex-direction: column; transition: transform 0.3s; z-index: 50; }
+        .sidebar-link { padding: 12px 20px; display: flex; align-items: center; gap: 12px; color: #94a3b8; border-left: 3px solid transparent; transition: 0.2s; text-decoration: none; }
+        .sidebar-link:hover { background: rgba(255,255,255,0.05); color: white; }
+        .sidebar-link.active { background: rgba(14, 165, 233, 0.1); color: var(--accent); border-left-color: var(--accent); }
+        .main-content { margin-left: 260px; min-height: 100vh; background: #f1f5f9; }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; }
+        }
+
+        .modal-overlay { position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 100; display: none; place-items: center; backdrop-filter: blur(2px); }
+        .modal-box { background: white; border-radius: 12px; width: 95%; max-width: 600px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+    </style>
+</head>
+<body>
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+        <div class="p-5 border-b border-slate-700">
+            <div class="logo-text text-lg font-bold text-sky-400">RETAIL_SYS</div>
+            <div class="text-xs text-slate-400 mt-1">Final Perfect Build</div>
+        </div>
+        <nav class="flex-1 py-4">
+            <!-- DASHBOARD ADDED BACK -->
+            <a href="#" class="sidebar-link active" data-page="dashboard">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1V5zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"></path></svg>
+                Dashboard
+            </a>
+            
+            <div class="px-4 mb-2 mt-4 text-xs font-semibold text-slate-500 uppercase">Database Engine</div>
+            <a href="#" class="sidebar-link" data-page="setup">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                Setup (Master List)
+            </a>
+            <a href="#" class="sidebar-link" data-page="daftar-toko">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                Daftar Toko
+            </a>
+
+            <div class="px-4 mb-2 mt-4 text-xs font-semibold text-slate-500 uppercase">Operasional</div>
+            <a href="#" class="sidebar-link" data-page="visit-plan">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Visit Plan
+            </a>
+            <a href="#" class="sidebar-link" data-page="aktifitas">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+                Aktifitas
+            </a>
+            <a href="#" class="sidebar-link" data-page="intelejen">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                Intelejen Report
+            </a>
+        </nav>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+        <header class="sticky top-0 z-40 bg-slate-50/80 backdrop-blur-sm border-b border-slate-200 p-4 flex justify-between items-center">
+            <div class="flex items-center gap-4">
+                <button id="menu-toggle" class="md:hidden p-2 rounded bg-white shadow text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+                <div>
+                    <h2 class="text-xl font-bold text-slate-800" id="page-title">Dashboard</h2>
+                    <p class="text-slate-500 text-xs" id="page-subtitle">Summary & Key Metrics</p>
+                </div>
+            </div>
+            <button id="btn-add-main" class="bg-sky-500 hover:bg-sky-600 text-white px-4 py-2 rounded-lg shadow-sm text-sm font-semibold flex items-center gap-2 transition">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                <span>Tambah Data</span>
+            </button>
+        </header>
+
+        <div class="p-4 md:p-6">
+            <div id="content-area" class="space-y-6">
+                <!-- Content Injected Here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL -->
+    <div id="modal-overlay" class="modal-overlay">
+        <div class="modal-box">
+            <div class="p-6 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-xl">
+                <h3 class="text-lg font-bold text-slate-800" id="modal-title">Form Input</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-2xl leading-none">&times;</button>
+            </div>
+            <div class="p-6" id="modal-body"></div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. DATABASE & STATE (Verified Structure)
+        // ==========================================
+
+        // Sheet: Setup
+        const DB_SETUP = {
+            statusToko: ['Active', 'Inactive', 'Prospect'],
+            jenisKunjungan: ['Fisik', 'Virtual', 'Telepon', 'Observasi Pasar'],
+            tujuanKunjungan: ['Penjualan', 'Sampling', 'Survey Harga', 'Penagihan'],
+            orderKe: ['Mustika Aroma', 'PT SAG', 'Grosir A', 'Grosir B'],
+            kompetitor: ['Parfarome', 'Dian Permata', 'AM Parfum', 'Lainnya'],
+            kategoriKomplain: ['Logistik', 'Kualitas', 'Harga', 'Pelayanan'],
+            samplingKategori: ['Sampling Product', 'Tidak Sampling', 'Demo Produk'],
+            pic: ['Ali', 'Budi', 'Citra', 'Deni'],
+            contactMethod: ['WhatsApp', 'Telepon', 'Email', 'Visit'] // Added from analysis
+        };
+
+        // Sheet: Daftar Toko (Added: Next Contact Date, Preferred Contact)
+        let DB_TOKO = [
+            { id: 'RTL001', nama: 'Toko Sumber Wangi', cp: 'Pak Budi', orderKe: 'Mustika Aroma', status: 'Active', jenisKunjungan: 'Fisik', pic: 'Ali', nextContact: '2024-02-15', prefMethod: 'WhatsApp' },
+            { id: 'RTL002', nama: 'Parfume Jaya', cp: 'Bu Ani', orderKe: 'PT SAG', status: 'Active', jenisKunjungan: 'Fisik', pic: 'Citra', nextContact: '2024-02-10', prefMethod: 'Telepon' },
+        ];
+
+        // Sheet: Visit Plan (Added: Tujuan)
+        let DB_VISIT = [
+            { idToko: 'RTL001', planDate: '2024-01-20', actualDate: '2024-01-20', jenis: 'Fisik', tujuan: 'Penjualan' },
+            { idToko: 'RTL002', planDate: '2024-01-25', actualDate: null, jenis: 'Fisik', tujuan: 'Penagihan' }, 
+        ];
+
+        // Sheet: Aktifitas (Added: Sales Rep, Contact Method)
+        let DB_AKTIFITAS = [
+            { idToko: 'RTL001', date: '2024-01-20', jenis: 'Fisik', tujuan: 'Penjualan', orderKe: 'Mustika Aroma', sampling: 'Sampling Product', feedback: 'Logistik', fotoUrl: 'http://link.foto/1', salesRep: 'Ali', contactMethod: 'Visit' }
+        ];
+
+        // Sheet: Intelejen
+        let DB_INTELEJEN = [
+            { idToko: 'RTL002', date: '2024-01-22', kompetitor: 'Parfarome', aktivitas: 'Promo Diskon' }
+        ];
+
+        // ==========================================
+        // 2. LOGIC ENGINE
+        // ==========================================
+        
+        const formatDate = (dateStr) => dateStr ? new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' }) : '-';
+        const generateKodeKontak = (t) => `[${t.id}] ${t.nama}`;
+        const getStoreData = (id) => DB_TOKO.find(t => t.id === id);
+        
+        const getLastVisit = (idToko) => {
+            const dates = DB_AKTIFITAS.filter(a => a.idToko === idToko).map(a => new Date(a.date));
+            if (dates.length === 0) return '-';
+            const maxDate = new Date(Math.max(...dates));
+            return formatDate(maxDate.toISOString().split('T')[0]);
+        };
+
+        const calculateVisitStatus = (planDate, actualDate) => {
+            const today = new Date(); today.setHours(0,0,0,0);
+            const plan = new Date(planDate);
+            if (actualDate) return { text: 'Visited', class: 'status-visited' };
+            if (plan < today) return { text: 'Overdue', class: 'status-overdue' };
+            return { text: 'Planned', class: 'bg-slate-100 text-slate-600' };
+        };
+
+        const getDaysUntilDue = (planDate, actualDate) => {
+            if (actualDate) return { text: 'Done', class: 'text-green-600' };
+            const today = new Date(); today.setHours(0,0,0,0);
+            const plan = new Date(planDate);
+            const diffTime = plan - today;
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (diffDays < 0) return { text: `${Math.abs(diffDays)} days late`, class: 'text-red-600 font-bold' };
+            return { text: `${diffDays} days left`, class: 'text-slate-500' };
+        };
+
+        // ==========================================
+        // 3. VIEW ENGINE
+        // ==========================================
+
+        const contentArea = document.getElementById('content-area');
+        const pageTitle = document.getElementById('page-title');
+        const pageSubtitle = document.getElementById('page-subtitle');
+        let currentActivePage = 'dashboard';
+
+        function navigateTo(page) {
+            currentActivePage = page;
+            document.querySelectorAll('.sidebar-link').forEach(el => el.classList.remove('active'));
+            document.querySelector(`[data-page="${page}"]`).classList.add('active');
+            
+            // Reset content area structure
+            contentArea.innerHTML = '';
+
+            switch(page) {
+                case 'dashboard': renderDashboard(); break;
+                case 'setup': renderSetup(); break;
+                case 'daftar-toko': renderDaftarToko(); break;
+                case 'visit-plan': renderVisitPlan(); break;
+                case 'aktifitas': renderAktifitas(); break;
+                case 'intelejen': renderIntelejen(); break;
+            }
+        }
+
+        // --- RENDER DASHBOARD (RESTORED) ---
+        function renderDashboard() {
+            pageTitle.textContent = "Dashboard";
+            pageSubtitle.textContent = "Summary of Key Metrics";
+            
+            // 1. Stats Cards
+            const statsHtml = `
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 uppercase font-semibold">Total Clients</p>
+                    <h3 class="text-2xl font-bold mt-1">${DB_TOKO.length}</h3>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 uppercase font-semibold">Open Visits</p>
+                    <h3 class="text-2xl font-bold mt-1 text-sky-500">${DB_VISIT.filter(v => !v.actualDate).length}</h3>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 uppercase font-semibold">Overdue</p>
+                    <h3 class="text-2xl font-bold mt-1 text-red-500">${DB_VISIT.filter(v => !v.actualDate && new Date(v.planDate) < new Date()).length}</h3>
+                </div>
+                <div class="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                    <p class="text-xs text-slate-500 uppercase font-semibold">Total Activities</p>
+                    <h3 class="text-2xl font-bold mt-1">${DB_AKTIFITAS.length}</h3>
+                </div>
+            </div>`;
+
+            // 2. Client List Table (Dashboard Block from Raw Data)
+            const clientTableHtml = `
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-4 border-b border-slate-200 flex justify-between items-center">
+                    <h3 class="font-bold text-slate-700">Client List with Filter</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="data-table">
+                        <thead><tr><th>Name</th><th>Company</th><th>Status</th><th>PIC</th><th>Last Visit</th></tr></thead>
+                        <tbody>
+                            ${DB_TOKO.map(t => `
+                                <tr>
+                                    <td class="font-medium">${t.nama}</td>
+                                    <td>${t.orderKe}</td>
+                                    <td><span class="status-pill ${t.status === 'Active' ? 'status-active' : 'bg-slate-100'}">${t.status}</span></td>
+                                    <td>${t.pic}</td>
+                                    <td class="text-xs text-slate-500">${getLastVisit(t.id)}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>`;
+
+            contentArea.innerHTML = statsHtml + clientTableHtml;
+        }
+
+        // --- RENDER SETUP ---
+        function renderSetup() {
+            pageTitle.textContent = "Setup Master List";
+            pageSubtitle.textContent = "Sumber data untuk semua dropdown validasi";
+            let html = `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">`;
+            for (const [key, values] of Object.entries(DB_SETUP)) {
+                const title = key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
+                html += `
+                    <div class="bg-white rounded-lg p-4 border border-slate-200">
+                        <div class="flex justify-between items-center mb-3">
+                            <h4 class="font-bold text-slate-700 text-sm">${title}</h4>
+                            <button class="text-xs text-sky-500 hover:underline" onclick="addSetupItem('${key}')">+ Add</button>
+                        </div>
+                        <ul class="space-y-1">
+                            ${values.map(v => `<li class="text-sm text-slate-600 flex justify-between items-center group">
+                                <span>${v}</span>
+                                <button class="text-red-300 hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition" onclick="removeSetupItem('${key}', '${v}')">Remove</button>
+                            </li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            html += `</div>`;
+            contentArea.innerHTML = html;
+        }
+
+        // --- RENDER DAFTAR TOKO (VERIFIED COLUMNS) ---
+        function renderDaftarToko() {
+            pageTitle.textContent = "Daftar Toko";
+            pageSubtitle.textContent = "Master Data Klien";
+            // Headers verified from analysis: Next Contact Date, Pref Method added
+            const headers = ['Kode Kontak', 'Nama Toko', 'CP', 'Order Ke', 'Status', 'Jenis', 'PIC', 'Next Contact', 'Pref Method', 'Last Visit', 'Action'];
+            
+            let html = `<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto"><table class="data-table">
+                <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                <tbody>`;
+            
+            DB_TOKO.forEach(t => {
+                html += `<tr>
+                    <td class="font-mono text-sky-600 font-medium text-xs">${generateKodeKontak(t)}</td>
+                    <td class="font-semibold">${t.nama}</td>
+                    <td>${t.cp}</td>
+                    <td>${t.orderKe}</td>
+                    <td><span class="status-pill ${t.status === 'Active' ? 'status-active' : 'bg-slate-100 text-slate-600'}">${t.status}</span></td>
+                    <td>${t.jenisKunjungan}</td>
+                    <td>${t.pic}</td>
+                    <td>${formatDate(t.nextContact)}</td>
+                    <td>${t.prefMethod}</td>
+                    <td class="text-slate-500 italic text-xs">${getLastVisit(t.id)}</td>
+                    <td><button class="text-sky-500 text-xs font-medium hover:underline" onclick="editToko('${t.id}')">Edit</button></td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            contentArea.innerHTML = html;
+        }
+
+        // --- RENDER VISIT PLAN ---
+        function renderVisitPlan() {
+            pageTitle.textContent = "Visit Plan";
+            pageSubtitle.textContent = "Logika Status Otomatis";
+            const headers = ['Kontak Toko', 'Nama Toko (Lookup)', 'PIC (Lookup)', 'Plan Date', 'Actual Date', 'Tujuan', 'Status', 'Days Until Due', 'Action'];
+
+            let html = `<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto"><table class="data-table">
+                <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                <tbody>`;
+
+            DB_VISIT.forEach(v => {
+                const store = getStoreData(v.idToko);
+                if(!store) return;
+                const status = calculateVisitStatus(v.planDate, v.actualDate);
+                const days = getDaysUntilDue(v.planDate, v.actualDate);
+
+                html += `<tr>
+                    <td class="font-mono text-xs">[${v.idToko}]</td>
+                    <td>${store.nama}</td>
+                    <td>${store.pic}</td>
+                    <td>${formatDate(v.planDate)}</td>
+                    <td>${v.actualDate ? formatDate(v.actualDate) : '<span class="text-slate-400">-</span>'}</td>
+                    <td>${v.tujuan}</td>
+                    <td><span class="status-pill ${status.class}">${status.text}</span></td>
+                    <td class="text-xs ${days.class}">${days.text}</td>
+                    <td>
+                        ${!v.actualDate 
+                            ? `<button class="text-green-500 text-xs font-medium hover:underline" onclick="inputActualDate('${v.idToko}', '${v.planDate}')">Check In</button>`
+                            : '<span class="text-slate-400 text-xs">Selesai</span>'}
+                    </td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            contentArea.innerHTML = html;
+        }
+
+        // --- RENDER AKTIFITAS (VERIFIED COLUMNS) ---
+        function renderAktifitas() {
+            pageTitle.textContent = "Log Aktifitas";
+            pageSubtitle.textContent = "Riwayat Kunjungan & Feedback";
+            // Headers added: Sales Rep, Contact Method
+            const headers = ['Date', 'Kontak', 'Nama Toko', 'Sales Rep', 'Method', 'Tujuan', 'Sampling', 'Feedback', 'Foto', 'Action'];
+
+            let html = `<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto"><table class="data-table">
+                <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+                <tbody>`;
+
+            DB_AKTIFITAS.forEach(a => {
+                const store = getStoreData(a.idToko);
+                html += `<tr>
+                    <td>${formatDate(a.date)}</td>
+                    <td class="font-mono text-xs">[${a.idToko}]</td>
+                    <td>${store ? store.nama : 'Unknown'}</td>
+                    <td>${a.salesRep}</td>
+                    <td>${a.contactMethod}</td>
+                    <td>${a.tujuan}</td>
+                    <td>${a.sampling}</td>
+                    <td><span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">${a.feedback}</span></td>
+                    <td><a href="${a.fotoUrl}" target="_blank" class="text-sky-500 hover:underline text-xs">Lihat</a></td>
+                    <td><button class="text-slate-400 hover:text-red-500 text-xs">Hapus</button></td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            contentArea.innerHTML = html;
+        }
+
+        // --- RENDER INTELEJEN ---
+        function renderIntelejen() {
+            pageTitle.textContent = "Intelejen Report";
+            pageSubtitle.textContent = "Data Kompetitor & Market Survey";
+            let html = `<div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto"><table class="data-table">
+                <thead><tr><th>Date</th><th>Toko</th><th>Kompetitor</th><th>Aktivitas</th><th>Action</th></tr></thead>
+                <tbody>`;
+            DB_INTELEJEN.forEach(i => {
+                const store = getStoreData(i.idToko);
+                html += `<tr>
+                    <td>${formatDate(i.date)}</td>
+                    <td>${store ? store.nama : 'Unknown'}</td>
+                    <td>${i.kompetitor}</td>
+                    <td>${i.aktivitas}</td>
+                    <td><button class="text-slate-400 hover:text-red-500 text-xs">Hapus</button></td>
+                </tr>`;
+            });
+            html += `</tbody></table></div></div>`;
+            contentArea.innerHTML = html;
+        }
+
+        // ==========================================
+        // 4. CONTROLLERS
+        // ==========================================
+
+        function openModal() { document.getElementById('modal-overlay').style.display = 'grid'; }
+        function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+        // Context Aware Button
+        document.getElementById('btn-add-main').addEventListener('click', () => {
+            if(currentActivePage === 'dashboard') { alert('Navigate to specific tab to add data.'); return; }
+            if(currentActivePage === 'setup') { alert('Use "Add" button on specific list card.'); return; }
+            
+            switch(currentActivePage) {
+                case 'daftar-toko': showTokoForm(); break;
+                case 'visit-plan': showVisitForm(); break;
+                case 'aktifitas': showAktifitasForm(); break;
+                case 'intelejen': showIntelejenForm(); break;
+            }
+        });
+
+        const getOptions = (arr) => arr.map(v => `<option value="${v}">${v}</option>`).join('');
+
+        // FORM: DAFTAR TOKO (Verified Columns)
+        function showTokoForm() {
+            document.getElementById('modal-title').innerText = "Tambah Toko Baru";
+            document.getElementById('modal-body').innerHTML = `
+                <form onsubmit="saveToko(event)" class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-slate-500 mb-1">ID Toko</label><input type="text" name="id" class="input-field" required></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">Nama</label><input type="text" name="nama" class="input-field" required></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-slate-500 mb-1">Contact Person</label><input type="text" name="cp" class="input-field"></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">Order Ke</label><select name="orderKe" class="input-field">${getOptions(DB_SETUP.orderKe)}</select></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-slate-500 mb-1">Status</label><select name="status" class="input-field">${getOptions(DB_SETUP.statusToko)}</select></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">PIC Sales</label><select name="pic" class="input-field">${getOptions(DB_SETUP.pic)}</select></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-slate-500 mb-1">Jenis Kunjungan</label><select name="jenisKunjungan" class="input-field">${getOptions(DB_SETUP.jenisKunjungan)}</select></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">Pref Method</label><select name="prefMethod" class="input-field">${getOptions(DB_SETUP.contactMethod)}</select></div>
+                    </div>
+                     <div><label class="block text-xs text-slate-500 mb-1">Next Contact Date</label><input type="date" name="nextContact" class="input-field"></div>
+                    <button type="submit" class="w-full bg-sky-500 text-white py-2 rounded-lg font-semibold mt-2">Save</button>
+                </form>
+            `;
+            openModal();
+        }
+
+        // FORM: AKTIFITAS (Verified Columns)
+        function showAktifitasForm() {
+            const tokoOptions = DB_TOKO.map(t => `<option value="${t.id}">[${t.id}] ${t.nama}</option>`).join('');
+            document.getElementById('modal-title').innerText = "Input Aktifitas";
+            document.getElementById('modal-body').innerHTML = `
+                <form onsubmit="saveAktifitas(event)" class="space-y-3">
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-slate-500 mb-1">Toko</label><select name="idToko" class="input-field" required>${tokoOptions}</select></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">Date</label><input type="date" name="date" class="input-field" required></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-slate-500 mb-1">Sales Rep</label><select name="salesRep" class="input-field">${getOptions(DB_SETUP.pic)}</select></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">Contact Method</label><select name="contactMethod" class="input-field">${getOptions(DB_SETUP.contactMethod)}</select></div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-slate-500 mb-1">Tujuan</label><select name="tujuan" class="input-field">${getOptions(DB_SETUP.tujuanKunjungan)}</select></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">Sampling</label><select name="sampling" class="input-field">${getOptions(DB_SETUP.samplingKategori)}</select></div>
+                    </div>
+                    <div><label class="block text-xs text-slate-500 mb-1">Feedback</label><select name="feedback" class="input-field">${getOptions(DB_SETUP.kategoriKomplain)}</select></div>
+                    <div><label class="block text-xs text-slate-500 mb-1">Link Foto</label><input type="text" name="fotoUrl" class="input-field"></div>
+                    <button type="submit" class="w-full bg-sky-500 text-white py-2 rounded-lg font-semibold mt-2">Save Log</button>
+                </form>
+            `;
+            openModal();
+        }
+
+        // FORM: VISIT PLAN (Verified Columns)
+        function showVisitForm() {
+            const tokoOptions = DB_TOKO.map(t => `<option value="${t.id}">[${t.id}] ${t.nama}</option>`).join('');
+            document.getElementById('modal-title').innerText = "Buat Visit Plan";
+            document.getElementById('modal-body').innerHTML = `
+                <form onsubmit="saveVisitPlan(event)" class="space-y-3">
+                    <div><label class="block text-xs text-slate-500 mb-1">Toko</label><select name="idToko" class="input-field" required>${tokoOptions}</select></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-slate-500 mb-1">Plan Date</label><input type="date" name="planDate" class="input-field" required></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">Tujuan</label><select name="tujuan" class="input-field">${getOptions(DB_SETUP.tujuanKunjungan)}</select></div>
+                    </div>
+                    <div><label class="block text-xs text-slate-500 mb-1">Jenis Kunjungan</label><select name="jenis" class="input-field">${getOptions(DB_SETUP.jenisKunjungan)}</select></div>
+                    <button type="submit" class="w-full bg-sky-500 text-white py-2 rounded-lg font-semibold mt-2">Create Plan</button>
+                </form>
+            `;
+            openModal();
+        }
+
+        function showIntelejenForm() {
+            const tokoOptions = DB_TOKO.map(t => `<option value="${t.id}">[${t.id}] ${t.nama}</option>`).join('');
+            document.getElementById('modal-title').innerText = "Input Intelejen";
+            document.getElementById('modal-body').innerHTML = `
+                <form onsubmit="saveIntelejen(event)" class="space-y-3">
+                     <div class="grid grid-cols-2 gap-3">
+                        <div><label class="block text-xs text-slate-500 mb-1">Toko</label><select name="idToko" class="input-field" required>${tokoOptions}</select></div>
+                        <div><label class="block text-xs text-slate-500 mb-1">Date</label><input type="date" name="date" class="input-field" required></div>
+                    </div>
+                    <div><label class="block text-xs text-slate-500 mb-1">Kompetitor</label><select name="kompetitor" class="input-field">${getOptions(DB_SETUP.kompetitor)}</select></div>
+                    <div><label class="block text-xs text-slate-500 mb-1">Aktivitas</label><input type="text" name="aktivitas" class="input-field"></div>
+                    <button type="submit" class="w-full bg-sky-500 text-white py-2 rounded-lg font-semibold mt-2">Save</button>
+                </form>
+            `;
+            openModal();
+        }
+
+        // -- Save Handlers --
+        function saveToko(e) {
+            e.preventDefault();
+            DB_TOKO.push({
+                id: e.target.id.value, nama: e.target.nama.value, cp: e.target.cp.value,
+                orderKe: e.target.orderKe.value, status: e.target.status.value, jenisKunjungan: e.target.jenisKunjungan.value,
+                pic: e.target.pic.value, nextContact: e.target.nextContact.value, prefMethod: e.target.prefMethod.value
+            });
+            closeModal(); renderDaftarToko();
+        }
+
+        function saveVisitPlan(e) {
+            e.preventDefault();
+            DB_VISIT.push({
+                idToko: e.target.idToko.value, planDate: e.target.planDate.value,
+                jenis: e.target.jenis.value, tujuan: e.target.tujujuan.value, actualDate: null
+            });
+            closeModal(); renderVisitPlan();
+        }
+
+        function saveAktifitas(e) {
+            e.preventDefault();
+            DB_AKTIFITAS.push({
+                idToko: e.target.idToko.value, date: e.target.date.value, tujuan: e.target.tujuan.value,
+                salesRep: e.target.salesRep.value, contactMethod: e.target.contactMethod.value,
+                sampling: e.target.sampling.value, feedback: e.target.feedback.value, fotoUrl: e.target.fotoUrl.value
+            });
+            closeModal(); renderAktifitas();
+        }
+
+        function saveIntelejen(e) {
+            e.preventDefault();
+            DB_INTELEJEN.push({
+                idToko: e.target.idToko.value, date: e.target.date.value,
+                kompetitor: e.target.kompetitor.value, aktivitas: e.target.aktivitas.value
+            });
+            closeModal(); renderIntelejen();
+        }
+
+        function inputActualDate(idToko, planDate) {
+            document.getElementById('modal-title').innerText = "Check In";
+            document.getElementById('modal-body').innerHTML = `
+                <form onsubmit="processCheckIn(event, '${idToko}', '${planDate}')" class="space-y-3">
+                    <div><label class="block text-xs text-slate-500 mb-1">Actual Date</label><input type="date" name="actualDate" class="input-field" required value="${new Date().toISOString().split('T')[0]}"></div>
+                    <p class="text-xs text-slate-400">Will update Visit Status and create Activity Log.</p>
+                    <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg font-semibold">Confirm</button>
+                </form>
+            `;
+            openModal();
+        }
+
+        function processCheckIn(e, idToko, planDate) {
+            e.preventDefault();
+            const actualDate = e.target.actualDate.value;
+            const visit = DB_VISIT.find(v => v.idToko === idToko && v.planDate === planDate);
+            if(visit) visit.actualDate = actualDate;
+
+            // Auto Log
+            DB_AKTIFITAS.push({
+                idToko: idToko, date: actualDate, tujuan: visit ? visit.tujuan : 'Visit',
+                salesRep: getStoreData(idToko).pic, contactMethod: 'Visit',
+                sampling: 'Sampling Product', feedback: '-', fotoUrl: '-'
+            });
+            closeModal(); renderVisitPlan();
+        }
+
+        window.addSetupItem = (key) => { const val = prompt(`Enter new value for ${key}:`); if(val) { DB_SETUP[key].push(val); renderSetup(); } }
+        window.removeSetupItem = (key, val) => { if(confirm(`Remove ${val}?`)) { DB_SETUP[key] = DB_SETUP[key].filter(i => i !== val); renderSetup(); } }
+
+        // Navigation Binding
+        document.querySelectorAll('.sidebar-link').forEach(el => {
+            el.addEventListener('click', (e) => {
+                e.preventDefault(); navigateTo(el.dataset.page);
+                if(window.innerWidth < 768) document.getElementById('sidebar').classList.remove('open');
+            });
+        });
+        document.getElementById('menu-toggle').addEventListener('click', () => document.getElementById('sidebar').classList.toggle('open'));
+        document.getElementById('modal-overlay').addEventListener('click', (e) => { if(e.target.id === 'modal-overlay') closeModal(); });
+
+        // Initialize
+        navigateTo('dashboard');
+
+    </script>
+</body>
+</html>

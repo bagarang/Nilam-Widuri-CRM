@@ -1,0 +1,75 @@
+Perjalanan data di dalam file pelaporan ini dirancang layaknya sebuah sistem database relasional. Alih-alih berfokus pada siapa yang mengetik data (actor-based), sistem ini murni mengandalkan pergerakan Primary Key (Kode Kontak) yang mengikat setiap transaksi.
+
+Berikut adalah dekonstruksi langkah demi langkah dari hulu (Setup) hingga hilir (Dashboard), membedah bagaimana setiap sheet berinteraksi dan mengalirkan data:
+
+FASE 1: Fondasi & Pembentukan Entitas (Hulu)
+1. Sheet Setup (Terminal Parameter)
+Sistem tidak akan berjalan tanpa sheet ini. Di sini, batasan operasional diciptakan agar data tidak liar.
+
+Alur: Data seperti "Parfarome" (Kompetitor), "Kualitas Produk" (Kategori Komplain), atau nama "Ali" (PIC) diketik di sini.
+
+Fungsi Relasional: Seluruh sel di sheet ini diikat menggunakan Name Manager untuk dijadikan sumber Data Validation (Dropdown) bagi seluruh sheet lainnya. Jika ada perubahan parameter (misal: penambahan nama kompetitor baru), perubahannya hanya dilakukan di sini dan akan langsung terdistribusi ke seluruh sistem.
+
+2. Sheet Daftar Toko (Master Database)
+Di sinilah entitas data dilahirkan dan diberikan identitas absolut.
+
+Alur Input: Informasi fundamental toko (ID, Nama, Alamat, PIC) dimasukkan. Atribut penting seperti STATUS dan JENIS KUNJUNGAN wajib dipilih dari dropdown yang bersumber dari sheet Setup.
+
+Penciptaan Primary Key: Excel secara otomatis menggabungkan CONTACT ID dan NAMA TOKO menjadi satu identitas unik di kolom KODE KONTAK (Contoh: [CRT00401] Susgiharti). Kunci inilah yang akan dibawa berjalan ke fase selanjutnya.
+
+Feedback Loop: Kolom LAST VISIT pada sheet ini tidak diisi manual. Ia dirancang untuk "mendengarkan" sheet Aktifitas. Setiap kali ada kunjungan baru yang direkam untuk KODE KONTAK tersebut, tanggal di LAST VISIT akan otomatis diperbarui ke tanggal yang paling mutakhir (MAXIFS).
+
+FASE 2: Orkestrasi & Pergerakan (Tengah)
+3. Sheet Visit Plan (Engine Penjadwalan)
+Ini adalah ruang tunggu operasional sebelum dieksekusi. Data dari fase 1 ditarik ke sini untuk dikawinkan dengan variabel waktu.
+
+Alur Pemanggilan: Pengguna memilih KODE KONTAK dari dropdown. Seketika, formula (VLOOKUP/XLOOKUP) bekerja memanggil NAMA TOKO dan PIC dari sheet Daftar Toko. Tidak ada pengetikan ulang.
+
+Trigger Waktu: Pengguna menetapkan PLAN DATE. Sistem langsung memulai perhitungan matematis membandingkan tanggal rencana dengan tanggal hari ini (Today).
+
+Manipulasi Status Otomatis:
+
+Selama ACTUAL DATE kosong, sistem akan memunculkan hitung mundur hari di kolom DAYS UNTIL DUE.
+
+Jika waktu habis dan ACTUAL DATE masih kosong, STATUS akan terkalibrasi menjadi Overdue.
+
+Saat tim lapangan mengisi ACTUAL DATE (tanda tugas selesai), formula mematikan hitung mundur, mengubah DAYS UNTIL DUE menjadi "Done", dan STATUS menjadi "Visited".
+
+4. Sheet Aktifitas (Log Eksekusi Utama)
+Saat rencana telah dijalankan, datanya direkam di sini. Sheet ini berfokus pada aliran distribusi internal dan kendala klien.
+
+Alur Identifikasi: Sama seperti Visit Plan, pemanggilan KODE KONTAK akan memicu penarikan data dasar toko.
+
+Kategorisasi Transaksi: Tim wajib mengunci jenis kegiatan (Observasi/Distribusi) melalui dropdown. Jika ada keluhan (misal: "Logistik"), data ditarik dari dropdown Setup untuk standarisasi keluhan.
+
+Bukti Kepatuhan: Kolom LINK FOTO KUNJUNGAN bertindak sebagai verifikasi akhir bahwa data operasional ini valid dan siap dikirim ke Dashboard.
+
+5. Sheet Intelejen Report (Log Satelit Eksternal)
+Berjalan paralel dengan sheet Aktifitas. Saat tim berada di lokasi toko (KODE KONTAK yang sama), mereka merekam anomali dari luar sistem.
+
+Alur: Memilih toko, lalu memilih KOMPETITOR dari dropdown (bersumber dari Setup), dan mencatat manuver mereka (misal: "Parfarome naik 15%"). Data ini diisolasi di sheet terpisah agar perhitungan komplain internal dan ancaman eksternal tidak bertabrakan saat divisualisasikan.
+
+FASE 3: Agregasi & Visualisasi (Hilir)
+6. Sheet DONOTUSE (Mesin ETL / Backend Processor)
+(Sheet ini sering kali disembunyikan dalam operasional sehari-hari, namun memegang peranan krusial sebagai jembatan data).
+
+Fungsi Kalkulasi: Dashboard yang estetik tidak bisa langsung menghitung data mentah yang berantakan. Sheet DONOTUSE mengambil semua baris data dari Visit Plan, Aktifitas, dan Intelejen Report.
+
+Alur: Sistem di sheet ini melakukan penyaringan (Filtering), penghilangan data ganda (Unique Contacts), dan menjumlahkan metrik (misal: menghitung berapa banyak komplain "Logistik" yang terjadi minggu ini menggunakan COUNTIFS/SUMIFS). Data kotor "dicuci" di sini menjadi angka absolut.
+
+7. Sheet Dashboard (Visualisasi Keputusan)
+Titik akhir dari perjalanan data. Semua angka yang muncul di sini adalah hasil pantulan.
+
+Alur: Dashboard menarik angka matang yang sudah dihitung oleh sheet DONOTUSE.
+
+Output Interaktif: Jika pimpinan (misal: Koh Franky/Boss) memilih filter "Bulan Mei" atau memilih nama agen "Mustika Aroma" di atas Dashboard, sinyal tersebut dikirim kembali ke DONOTUSE untuk menyaring ulang data transaksi, dan Dashboard akan langsung menyajikan metrik terbaru seperti:
+
+Total realisasi kunjungan fisik berbanding target.
+
+Akumulasi distribusi sampling.
+
+Pemetaan area keluhan terbesar.
+
+Dominasi kompetitor di lapangan.
+
+Secara keseluruhan, alur sistem ini sangat seamless. Sentuhan manual (ketik bebas) dibatasi seminimal mungkin, digantikan oleh pergerakan Primary Key dan referensi Dropdown yang mengalir menggerakkan formula logika hingga berujung pada laporan visual.
