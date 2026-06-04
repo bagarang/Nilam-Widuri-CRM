@@ -1,75 +1,233 @@
-Perjalanan data di dalam file pelaporan ini dirancang layaknya sebuah sistem database relasional. Alih-alih berfokus pada siapa yang mengetik data (actor-based), sistem ini murni mengandalkan pergerakan Primary Key (Kode Kontak) yang mengikat setiap transaksi.
+TAHAP 1 — SETUP
+Pertama kali sistem digunakan, Admin mengisi Sheet Setup.
+Di sini terdapat data referensi seperti:
+Dashboard Name
+Status Toko
+Jenis Kunjungan
+Order Ke
+Kategori Sampling
+Task Categories
+Kompetitor
+Data ini tidak menghasilkan transaksi.
+Fungsinya hanya sebagai sumber dropdown untuk sheet lain.
+Setup
+ ↓
+Menjadi sumber dropdown
 
-Berikut adalah dekonstruksi langkah demi langkah dari hulu (Setup) hingga hilir (Dashboard), membedah bagaimana setiap sheet berinteraksi dan mengalirkan data:
 
-FASE 1: Fondasi & Pembentukan Entitas (Hulu)
-1. Sheet Setup (Terminal Parameter)
-Sistem tidak akan berjalan tanpa sheet ini. Di sini, batasan operasional diciptakan agar data tidak liar.
+TAHAP 2 — DAFTAR TOKO
+Setelah Setup selesai, user mulai mengisi Daftar Toko.
+Contoh:
+Contact ID
+Nama Toko
+CRT001
+Toko Maju
+CRT002
+Toko Jaya
 
-Alur: Data seperti "Parfarome" (Kompetitor), "Kualitas Produk" (Kategori Komplain), atau nama "Ali" (PIC) diketik di sini.
+Di sinilah seluruh database toko disimpan.
+Field penting:
+Contact ID
+Nama Toko
+Contact Person
+Phone
+Location
+Status
+PIC
+Pada tahap ini belum ada kunjungan.
+Belum ada aktivitas.
+Belum ada laporan kompetitor.
+Hanya pendataan toko.
+Setup
+ ↓
+Daftar Toko
 
-Fungsi Relasional: Seluruh sel di sheet ini diikat menggunakan Name Manager untuk dijadikan sumber Data Validation (Dropdown) bagi seluruh sheet lainnya. Jika ada perubahan parameter (misal: penambahan nama kompetitor baru), perubahannya hanya dilakukan di sini dan akan langsung terdistribusi ke seluruh sistem.
 
-2. Sheet Daftar Toko (Master Database)
-Di sinilah entitas data dilahirkan dan diberikan identitas absolut.
+TAHAP 3 — VISIT PLAN
+Setelah toko terdaftar, user membuat rencana kunjungan di Sheet Visit Plan.
+Contoh:
+Nama Toko
+Plan Date
+Toko Maju
+10 Juni
+Toko Jaya
+11 Juni
 
-Alur Input: Informasi fundamental toko (ID, Nama, Alamat, PIC) dimasukkan. Atribut penting seperti STATUS dan JENIS KUNJUNGAN wajib dipilih dari dropdown yang bersumber dari sheet Setup.
+Artinya:
+"Saya berencana mengunjungi toko tersebut."
+Belum benar-benar datang.
+Masih berupa jadwal.
+Status awal biasanya:
+Scheduled
 
-Penciptaan Primary Key: Excel secara otomatis menggabungkan CONTACT ID dan NAMA TOKO menjadi satu identitas unik di kolom KODE KONTAK (Contoh: [CRT00401] Susgiharti). Kunci inilah yang akan dibawa berjalan ke fase selanjutnya.
+Flow:
+Daftar Toko
+ ↓
+Visit Plan
 
-Feedback Loop: Kolom LAST VISIT pada sheet ini tidak diisi manual. Ia dirancang untuk "mendengarkan" sheet Aktifitas. Setiap kali ada kunjungan baru yang direkam untuk KODE KONTAK tersebut, tanggal di LAST VISIT akan otomatis diperbarui ke tanggal yang paling mutakhir (MAXIFS).
+Karena toko yang dipilih di Visit Plan berasal dari Daftar Toko.
 
-FASE 2: Orkestrasi & Pergerakan (Tengah)
-3. Sheet Visit Plan (Engine Penjadwalan)
-Ini adalah ruang tunggu operasional sebelum dieksekusi. Data dari fase 1 ditarik ke sini untuk dikawinkan dengan variabel waktu.
+TAHAP 4 — HARI KUNJUNGAN
+Ketika tanggal kunjungan tiba.
+Petugas datang ke toko.
+Namun yang menarik dari file Anda adalah:
+Visit Plan tidak menyimpan detail aktivitas kunjungan.
+Visit Plan hanya menyimpan:
+Rencana
+Jadwal
+Status
+Sedangkan detail pekerjaan disimpan di Sheet lain yaitu:
+Aktifitas
 
-Alur Pemanggilan: Pengguna memilih KODE KONTAK dari dropdown. Seketika, formula (VLOOKUP/XLOOKUP) bekerja memanggil NAMA TOKO dan PIC dari sheet Daftar Toko. Tidak ada pengetikan ulang.
 
-Trigger Waktu: Pengguna menetapkan PLAN DATE. Sistem langsung memulai perhitungan matematis membandingkan tanggal rencana dengan tanggal hari ini (Today).
+TAHAP 5 — AKTIFITAS
+Inilah inti operasionalnya.
+Saat kunjungan selesai, user mengisi Sheet Aktifitas.
+Misalnya:
+Toko : Toko Maju
+Tanggal : 10 Juni
+Aktifitas : Product Education
+Kategori Sampling : Coffee
+Keluhan : Harga terlalu mahal
 
-Manipulasi Status Otomatis:
+Di sinilah bukti kunjungan dicatat.
 
-Selama ACTUAL DATE kosong, sistem akan memunculkan hitung mundur hari di kolom DAYS UNTIL DUE.
+Perhatikan hubungan ini:
+Daftar Toko
+      ↓
+Visit Plan
+      ↓
+Aktifitas
 
-Jika waktu habis dan ACTUAL DATE masih kosong, STATUS akan terkalibrasi menjadi Overdue.
+Artinya:
+Toko dibuat.
+Dijadwalkan kunjungan.
+Kunjungan dilakukan.
+Aktivitas dicatat.
 
-Saat tim lapangan mengisi ACTUAL DATE (tanda tugas selesai), formula mematikan hitung mundur, mengubah DAYS UNTIL DUE menjadi "Done", dan STATUS menjadi "Visited".
+TAHAP 6 — UPDATE LAST VISIT
+Ini bagian yang otomatis.
+Pada Sheet Daftar Toko terdapat kolom:
+Last Visit
 
-4. Sheet Aktifitas (Log Eksekusi Utama)
-Saat rencana telah dijalankan, datanya direkam di sini. Sheet ini berfokus pada aliran distribusi internal dan kendala klien.
+Kolom ini tidak diisi manual.
+Formula mengambil data dari:
+Aktifitas
 
-Alur Identifikasi: Sama seperti Visit Plan, pemanggilan KODE KONTAK akan memicu penarikan data dasar toko.
+Jadi ketika user membuat aktivitas baru:
+Aktifitas
+↓
+Tanggal Kunjungan Baru
+↓
+Last Visit berubah otomatis
 
-Kategorisasi Transaksi: Tim wajib mengunci jenis kegiatan (Observasi/Distribusi) melalui dropdown. Jika ada keluhan (misal: "Logistik"), data ditarik dari dropdown Setup untuk standarisasi keluhan.
+Contoh:
+Sebelumnya:
+Last Visit
+05 Juni
 
-Bukti Kepatuhan: Kolom LINK FOTO KUNJUNGAN bertindak sebagai verifikasi akhir bahwa data operasional ini valid dan siap dikirim ke Dashboard.
+Setelah aktivitas baru:
+Last Visit
+10 Juni
 
-5. Sheet Intelejen Report (Log Satelit Eksternal)
-Berjalan paralel dengan sheet Aktifitas. Saat tim berada di lokasi toko (KODE KONTAK yang sama), mereka merekam anomali dari luar sistem.
 
-Alur: Memilih toko, lalu memilih KOMPETITOR dari dropdown (bersumber dari Setup), dan mencatat manuver mereka (misal: "Parfarome naik 15%"). Data ini diisolasi di sheet terpisah agar perhitungan komplain internal dan ancaman eksternal tidak bertabrakan saat divisualisasikan.
+TAHAP 7 — INTELEJEN REPORT
+Saat sedang berada di toko.
+User mungkin melihat aktivitas kompetitor.
+Contoh:
+Kompetitor:
+ABC
 
-FASE 3: Agregasi & Visualisasi (Hilir)
-6. Sheet DONOTUSE (Mesin ETL / Backend Processor)
-(Sheet ini sering kali disembunyikan dalam operasional sehari-hari, namun memegang peranan krusial sebagai jembatan data).
+Aktivitas:
+Diskon 20%
 
-Fungsi Kalkulasi: Dashboard yang estetik tidak bisa langsung menghitung data mentah yang berantakan. Sheet DONOTUSE mengambil semua baris data dari Visit Plan, Aktifitas, dan Intelejen Report.
+atau
+Kompetitor:
+XYZ
 
-Alur: Sistem di sheet ini melakukan penyaringan (Filtering), penghilangan data ganda (Unique Contacts), dan menjumlahkan metrik (misal: menghitung berapa banyak komplain "Logistik" yang terjadi minggu ini menggunakan COUNTIFS/SUMIFS). Data kotor "dicuci" di sini menjadi angka absolut.
+Aktivitas:
+Display baru
 
-7. Sheet Dashboard (Visualisasi Keputusan)
-Titik akhir dari perjalanan data. Semua angka yang muncul di sini adalah hasil pantulan.
+Informasi ini tidak masuk ke Aktifitas.
+Tetapi masuk ke Sheet:
+Intelegence Report
 
-Alur: Dashboard menarik angka matang yang sudah dihitung oleh sheet DONOTUSE.
+Jadi sebenarnya Intelegence Report adalah cabang dari kunjungan toko.
+Flow-nya:
+Saat Visit
+     ├─ Aktifitas
+     └─ Intelegence Report
 
-Output Interaktif: Jika pimpinan (misal: Koh Franky/Boss) memilih filter "Bulan Mei" atau memilih nama agen "Mustika Aroma" di atas Dashboard, sinyal tersebut dikirim kembali ke DONOTUSE untuk menyaring ulang data transaksi, dan Dashboard akan langsung menyajikan metrik terbaru seperti:
+Karena keduanya terjadi saat kunjungan yang sama.
 
-Total realisasi kunjungan fisik berbanding target.
+TAHAP 8 — DASHBOARD
+Dashboard tidak menghasilkan data.
+Dashboard hanya membaca data dari semua sheet.
+Dashboard mengambil data dari:
+Daftar Toko
+Untuk:
+Total Toko
+Status Toko
 
-Akumulasi distribusi sampling.
+Visit Plan
+Untuk:
+Target Kunjungan
+Scheduled
+Overdue
+Visited
 
-Pemetaan area keluhan terbesar.
+Aktifitas
+Untuk:
+Aktivitas terbaru
+Sampling
+Feedback
 
-Dominasi kompetitor di lapangan.
+Intelegence Report
+Untuk:
+Aktivitas Kompetitor
+Monitoring Kompetitor
 
-Secara keseluruhan, alur sistem ini sangat seamless. Sentuhan manual (ketik bebas) dibatasi seminimal mungkin, digantikan oleh pergerakan Primary Key dan referensi Dropdown yang mengalir menggerakkan formula logika hingga berujung pada laporan visual.
+Flow Dashboard:
+Daftar Toko
+      │
+Visit Plan
+      │
+Aktifitas
+      │
+Intelegence Report
+      │
+      ▼
+Dashboard
+
+Jika Digambarkan Persis Seperti File Excel
+Menurut saya flow yang paling akurat berdasarkan file Anda adalah:
+SETUP
+   │
+   ▼
+DAFTAR TOKO
+   │
+   ▼
+VISIT PLAN
+   │
+   ▼
+KUNJUNGAN TOKO
+   │
+   ├──────────────┐
+   │              │
+   ▼              ▼
+AKTIFITAS   INTELEGENCE REPORT
+   │              │
+   └──────┬───────┘
+          │
+          ▼
+UPDATE LAST VISIT
+(DAFTAR TOKO)
+          │
+          ▼
+DASHBOARD
+
+Kalau nanti ini dijadikan CRM Web, sebenarnya user sehari-hari hanya akan bekerja di 3 menu utama:
+Daftar Toko → membuat dan mengelola toko.
+Visit Plan → membuat jadwal kunjungan.
+Aktifitas + Intelegence Report → mengisi hasil kunjungan.
+Sedangkan Setup dan Dashboard lebih banyak digunakan oleh Admin dan Manager.
