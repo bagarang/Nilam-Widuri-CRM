@@ -32,6 +32,7 @@
 </head>
 <body class="flex h-screen">
 
+  <!-- SIDEBAR -->
   <aside class="sidebar w-64 flex-shrink-0 flex flex-col">
     <div class="p-6 border-b border-[var(--border)]">
       <h1 class="text-xl font-bold tracking-wider text-[var(--accent)]">RETAIL SUPPORT</h1>
@@ -46,8 +47,10 @@
     </nav>
   </aside>
 
+  <!-- MAIN CONTENT -->
   <main class="flex-1 overflow-auto p-8" id="app-content"></main>
 
+  <!-- MODAL -->
   <div class="modal" id="modal"><div class="modal-content" id="modal-body"></div></div>
 
   <script>
@@ -133,10 +136,9 @@
     }
 
     // =========================================================================
-    // 3. DASHBOARD (SEPARATED KPI: PIC vs AGENT)
+    // 3. DASHBOARD
     // =========================================================================
     function renderDashboard(c) {
-      // Dapatkan Filter State
       let fStart = document.getElementById('dashStart') ? document.getElementById('dashStart').value : window.dashFilters.start;
       let fEnd = document.getElementById('dashEnd') ? document.getElementById('dashEnd').value : window.dashFilters.end;
       let fToko = document.getElementById('dashToko') ? document.getElementById('dashToko').value : window.dashFilters.toko;
@@ -145,11 +147,9 @@
       
       window.dashFilters = { start: fStart, end: fEnd, pic: fPIC, agen: fAgen, toko: fToko };
 
-      // Helper Map
       let tokoMap = {};
       db.toko.forEach(t => tokoMap[t.kodeKontak] = { pic: t.pic, orderKe: t.orderKe });
 
-      // Base Filters (Berlaku untuk semua)
       const baseF_Toko = t => (!fToko || t.kodeKontak === fToko);
       const baseF_Plan = p => {
           if(fStart && p.planDate < fStart) return false;
@@ -170,7 +170,7 @@
           return true;
       };
 
-      // --- EKSKLUSIF KPI PIC ---
+      // KPI PIC
       let picTokoDB = db.toko.filter(t => baseF_Toko(t) && (!fPIC || t.pic === fPIC));
       let picPlanDB = db.plan.filter(p => baseF_Plan(p) && (!fPIC || p.pic === fPIC));
       let picAktDB = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)));
@@ -180,7 +180,7 @@
       let p_visited = picPlanDB.filter(p=>p.status==='Visited').length;
       let p_issue = picAktDB.filter(a=>a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan').length;
 
-      // --- EKSKLUSIF KPI AGEN ---
+      // KPI AGEN
       let agenTokoDB = db.toko.filter(t => baseF_Toko(t) && (!fAgen || t.orderKe === fAgen));
       let agenPlanDB = db.plan.filter(p => baseF_Plan(p) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen)));
       let agenAktDB = db.aktifitas.filter(a => baseF_Akt(a) && (!fAgen || a.orderKe === fAgen));
@@ -190,7 +190,7 @@
       let a_visited = agenPlanDB.filter(p=>p.status==='Visited').length;
       let a_issue = agenAktDB.filter(a=>a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan').length;
 
-      // --- AGREGASI GABUNGAN UNTUK CHART & TABEL ---
+      // COMBINED
       let fPlanCombined = db.plan.filter(p => baseF_Plan(p) && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen)));
       let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)) && (!fAgen || a.orderKe === fAgen));
       let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].orderKe === fAgen)));
@@ -202,7 +202,6 @@
       let compData = {};
       fIntelCombined.forEach(i => { let k = i.kompetitor || 'Unknown'; compData[k] = (compData[k] || 0) + 1; });
 
-      // Build Select Option List
       let optToko = db.toko.map(t => `<option value="${t.kodeKontak}" ${fToko === t.kodeKontak ? 'selected':''}>${t.namaToko}</option>`).join('');
 
       c.innerHTML = `
@@ -211,35 +210,19 @@
             <button onclick="resetFilters()" class="btn btn-secondary text-sm">↻ Reset Semua Filter</button>
         </div>
         
-        <!-- GLOBAL FILTER (PERIODE & TOKO) -->
         <div class="card bg-slate-800 border-[var(--border)] mb-6">
             <div class="grid grid-cols-3 gap-6">
-               <div>
-                   <label class="text-xs text-[var(--text-muted)] font-bold mb-1 block">TANGGAL MULAI (Semua Data)</label>
-                   <input type="date" id="dashStart" value="${fStart}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))">
-               </div>
-               <div>
-                   <label class="text-xs text-[var(--text-muted)] font-bold mb-1 block">TANGGAL AKHIR (Semua Data)</label>
-                   <input type="date" id="dashEnd" value="${fEnd}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))">
-               </div>
-               <div>
-                   <label class="text-xs text-[var(--text-muted)] font-bold mb-1 block">FILTER TOKO SPESIFIK</label>
-                   <select id="dashToko" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))">
-                        <option value="">-- Tampilkan Semua Toko --</option>${optToko}
-                   </select>
-               </div>
+               <div><label class="text-xs text-[var(--text-muted)] font-bold mb-1 block">TANGGAL MULAI</label><input type="date" id="dashStart" value="${fStart}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
+               <div><label class="text-xs text-[var(--text-muted)] font-bold mb-1 block">TANGGAL AKHIR</label><input type="date" id="dashEnd" value="${fEnd}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
+               <div><label class="text-xs text-[var(--text-muted)] font-bold mb-1 block">FILTER TOKO SPESIFIK</label><select id="dashToko" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Toko --</option>${optToko}</select></div>
            </div>
         </div>
 
-        <!-- KPI EKSKLUSIF: PIC -->
+        <!-- KPI PIC -->
         <div class="mb-8">
             <div class="flex justify-between items-end mb-3 border-b border-[var(--border)] pb-2">
                 <h2 class="text-lg font-bold text-[var(--accent)] tracking-wide">■ KINERJA BERDASARKAN PIC</h2>
-                <div class="w-64">
-                    <select id="dashPIC" class="input-field py-1 mt-0 text-sm" onchange="renderDashboard(document.getElementById('app-content'))">
-                        <option value="">-- Semua PIC --</option>${optionsHtml(db.setup.PIC, fPIC)}
-                    </select>
-                </div>
+                <div class="w-64"><select id="dashPIC" class="input-field py-1 mt-0 text-sm" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua PIC --</option>${optionsHtml(db.setup.PIC, fPIC)}</select></div>
             </div>
             <div class="grid grid-cols-4 gap-4">
               <div class="card bg-[var(--bg-dark)] border-t-2 border-[var(--accent)]"><p class="text-[10px] text-[var(--text-muted)]">TOKO DIKELOLA</p><h2 class="text-xl font-bold">${p_totalToko}</h2></div>
@@ -249,15 +232,11 @@
             </div>
         </div>
 
-        <!-- KPI EKSKLUSIF: AGEN -->
+        <!-- KPI AGEN -->
         <div class="mb-8">
             <div class="flex justify-between items-end mb-3 border-b border-[var(--border)] pb-2">
                 <h2 class="text-lg font-bold text-blue-400 tracking-wide">■ KINERJA BERDASARKAN AGEN (ORDER KE)</h2>
-                <div class="w-64">
-                    <select id="dashAgen" class="input-field py-1 mt-0 text-sm" onchange="renderDashboard(document.getElementById('app-content'))">
-                        <option value="">-- Semua Agen --</option>${optionsHtml(db.setup.ORDER_KE, fAgen)}
-                    </select>
-                </div>
+                <div class="w-64"><select id="dashAgen" class="input-field py-1 mt-0 text-sm" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Agen --</option>${optionsHtml(db.setup.ORDER_KE, fAgen)}</select></div>
             </div>
             <div class="grid grid-cols-4 gap-4">
               <div class="card bg-[var(--bg-dark)] border-t-2 border-blue-500"><p class="text-[10px] text-[var(--text-muted)]">TOKO DIKELOLA</p><h2 class="text-xl font-bold">${a_totalToko}</h2></div>
@@ -267,16 +246,9 @@
             </div>
         </div>
 
-        <!-- CHARTS & TABLES (GABUNGAN FILTER PIC & AGEN) -->
         <div class="grid grid-cols-2 gap-6 mb-8">
-            <div class="card h-80 flex flex-col">
-                <h3 class="font-bold text-sm mb-4">GRAFIK STATUS VISIT PLAN (Irisan Filter)</h3>
-                <div class="flex-1 relative w-full h-full"><canvas id="chartKunjungan"></canvas></div>
-            </div>
-            <div class="card h-80 flex flex-col">
-                <h3 class="font-bold text-sm mb-4">LAPORAN KOMPETITOR (Irisan Filter)</h3>
-                <div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div>
-            </div>
+            <div class="card h-80 flex flex-col"><h3 class="font-bold text-sm mb-4">GRAFIK STATUS VISIT PLAN (Irisan Filter)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKunjungan"></canvas></div></div>
+            <div class="card h-80 flex flex-col"><h3 class="font-bold text-sm mb-4">LAPORAN KOMPETITOR (Irisan Filter)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
         </div>
 
         <div class="card">
@@ -284,9 +256,7 @@
           <div class="overflow-x-auto">
           <table>
             <thead><tr><th>NAMA TOKO</th><th>TGL KUNJUNGAN</th><th>JENIS KUNJUNGAN</th><th>AKTIFITAS</th><th>STATUS</th></tr></thead>
-            <tbody>
-              ${fAktifitasCombined.length > 0 ? fAktifitasCombined.slice(-5).reverse().map(a => `<tr><td>${a.namaToko}</td><td>${a.tanggalKunjungan}</td><td>${a.jenisKunjungan}</td><td><span class="badge" style="background:#1e3a8a">${a.aktifitas}</span></td><td><span class="badge" style="background:var(--accent)">${a.status}</span></td></tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Tidak ada data untuk kombinasi filter saat ini.</td></tr>`}
-            </tbody>
+            <tbody>${fAktifitasCombined.length > 0 ? fAktifitasCombined.slice(-5).reverse().map(a => `<tr><td>${a.namaToko}</td><td>${a.tanggalKunjungan}</td><td>${a.jenisKunjungan}</td><td><span class="badge" style="background:#1e3a8a">${a.aktifitas}</span></td><td><span class="badge" style="background:var(--accent)">${a.status}</span></td></tr>`).join('') : `<tr><td colspan="5" class="text-center text-[var(--text-muted)] py-4">Tidak ada data untuk kombinasi filter saat ini.</td></tr>`}</tbody>
           </table>
           </div>
         </div>
@@ -300,10 +270,7 @@
         if(ctxK) {
             window.dashChartKunjungan = new Chart(ctxK, {
                 type: 'doughnut',
-                data: {
-                    labels: ['Visited', 'Scheduled', 'Overdue'],
-                    datasets: [{ data: [c_visited, c_scheduled, c_overdue], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 0 }]
-                },
+                data: { labels: ['Visited', 'Scheduled', 'Overdue'], datasets: [{ data: [c_visited, c_scheduled, c_overdue], backgroundColor: ['#10b981', '#3b82f6', '#ef4444'], borderWidth: 0 }] },
                 options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: {color: '#f8fafc'} } } }
             });
         }
@@ -311,10 +278,7 @@
         if(ctxC) {
             window.dashChartKompetitor = new Chart(ctxC, {
                 type: 'bar',
-                data: {
-                    labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada Laporan'],
-                    datasets: [{ label: 'Jumlah Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#f59e0b' }]
-                },
+                data: { labels: Object.keys(compData).length ? Object.keys(compData) : ['Belum Ada Laporan'], datasets: [{ label: 'Jumlah Laporan', data: Object.keys(compData).length ? Object.values(compData) : [0], backgroundColor: '#f59e0b' }] },
                 options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: {color: '#94a3b8'} }, x: { ticks: {color: '#94a3b8'} } }, plugins: { legend: { display: false } } }
             });
         }
@@ -335,7 +299,7 @@
       }
       c.innerHTML = html + `</div>`;
     }
-    function addSetup(key) { openModal(`<h2 class="text-xl font-bold mb-4">Tambah Master Data: ${key.replace(/_/g, ' ')}</h2><input type="text" id="setupVal" class="input-field mb-4" placeholder="Masukkan pilihan baru..."><div class="flex gap-2"><button onclick="closeModal()" class="btn" style="background:var(--border)">Batal</button><button onclick="saveSetup('${key}')" class="btn btn-primary">Simpan Master Data</button></div>`); }
+    function addSetup(key) { openModal(`<h2 class="text-xl font-bold mb-4">Tambah Master Data: ${key.replace(/_/g, ' ')}</h2><input type="text" id="setupVal" class="input-field mb-4" placeholder="Masukkan pilihan baru..."><div class="flex gap-2"><button onclick="closeModal()" class="btn" style="background:var(--border)">Batal</button><button onclick="saveSetup('${key}')" class="btn btn-primary">Simpan</button></div>`); }
     function saveSetup(key) { let val = document.getElementById('setupVal').value; if(val) { db.setup[key].push(val); setDB('db_setup', db.setup); closeModal(); renderSetup(document.getElementById('app-content')); } }
     function delSetup(key, idx) { if(confirm('Hapus item pilihan ini?')) { db.setup[key].splice(idx, 1); setDB('db_setup', db.setup); renderSetup(document.getElementById('app-content')); } }
 
@@ -344,15 +308,15 @@
     // =========================================================================
     function renderDaftarToko(c) {
       let rows = db.toko.map(t => `<tr><td>${t.contactId}</td><td class="font-bold text-[var(--accent)]">${t.namaToko}</td><td>${t.contactPerson}</td><td>${t.orderKe}</td><td><span class="badge" style="background:${t.status==='Active'||t.status==='Customer'?'var(--accent)':'var(--danger)'}">${t.status}</span></td><td>${t.jenisKunjungan}</td><td>${t.pic}</td><td>${t.targetKunjungan}</td><td>${t.lastVisit || '-'}</td><td>${t.kodeKontak}</td><td><button onclick="delToko('${t.contactId}')" class="text-xs text-[var(--danger)] font-bold">Del</button></td></tr>`).join('');
-      c.innerHTML = `<div class="flex justify-between items-center mb-6"><h1 class="text-3xl font-bold">Daftar Toko</h1><button onclick="formToko()" class="btn btn-primary">+ Add Toko Baru</button></div><div class="card overflow-x-auto"><table><thead><tr><th>CONTACT ID</th><th>NAMA TOKO</th><th>CONTACT PERSON</th><th>ORDER KE</th><th>STATUS</th><th>JENIS KUNJUNGAN</th><th>PIC</th><th>TARGET</th><th>LAST VISIT</th><th>KODE KONTAK</th><th>ACTION</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      c.innerHTML = `<div class="flex justify-between items-center mb-6"><h1 class="text-3xl font-bold">Daftar Toko</h1><button onclick="formToko()" class="btn btn-primary">+ Add Toko Baru</button></div><div class="card overflow-x-auto"><table><thead><tr><th>CONTACT ID</th><th>NAMA TOKO</th><th>CONTACT PERSON</th><th>ORDER KE</th><th>STATUS</th><th>JENIS KUNJUNGAN</th><th>PIC</th><th>TARGET</th><th>LAST VISIT</th><th>KODE KONTAK</th><th>ACT</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }
     function formToko() {
       openModal(`
         <h2 class="text-xl font-bold mb-4">Form Tambah Daftar Toko</h2>
         <form onsubmit="saveToko(event)">
           <div class="grid grid-cols-2 gap-4 mb-4">
-            <div><label class="text-xs">CONTACT ID *</label><input required name="contactId" class="input-field" placeholder="Contoh: CRT001"></div>
-            <div><label class="text-xs">NAMA TOKO *</label><input required name="namaToko" class="input-field" placeholder="Contoh: Toko Sejahtera"></div>
+            <div><label class="text-xs">CONTACT ID *</label><input required name="contactId" class="input-field" placeholder="CRT001"></div>
+            <div><label class="text-xs">NAMA TOKO *</label><input required name="namaToko" class="input-field"></div>
             <div><label class="text-xs">CONTACT PERSON</label><input name="contactPerson" class="input-field"></div>
             <div><label class="text-xs">JOB TITLE</label><input name="jobTitle" class="input-field"></div>
             <div><label class="text-xs">PHONE</label><input name="phone" class="input-field"></div>
@@ -368,7 +332,11 @@
         </form>
       `);
     }
-    function saveToko(e) { e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target)); obj.lastVisit = ''; obj.kodeKontak = `[${obj.contactId}] ${obj.contactPerson}`; db.toko.push(obj); setDB('db_toko', db.toko); closeModal(); renderDaftarToko(document.getElementById('app-content')); }
+    function saveToko(e) {
+      e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target));
+      obj.lastVisit = ''; obj.kodeKontak = `[${obj.contactId}] ${obj.contactPerson}`;
+      db.toko.push(obj); setDB('db_toko', db.toko); closeModal(); renderDaftarToko(document.getElementById('app-content'));
+    }
 
     // =========================================================================
     // 6. VISIT PLAN
@@ -380,10 +348,10 @@
     function formPlan() {
       let tokoOptions = db.toko.map(t => `<option value="${t.kodeKontak}" data-nama="${t.namaToko}">${t.kodeKontak} - ${t.namaToko}</option>`).join('');
       openModal(`
-        <h2 class="text-xl font-bold mb-4">Form Rencana Kunjungan (Visit Plan)</h2>
+        <h2 class="text-xl font-bold mb-4">Form Rencana Kunjungan</h2>
         <form onsubmit="savePlan(event)">
           <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="col-span-2"><label class="text-xs text-[var(--accent)]">PILIH TOKO DARI MASTER *</label>
+            <div class="col-span-2"><label class="text-xs text-[var(--accent)]">PILIH TOKO *</label>
               <select required name="kontakToko" class="input-field" onchange="document.getElementById('vpNama').value = this.options[this.selectedIndex].dataset.nama">
                 <option value="">Pilih Toko Master...</option>${tokoOptions}
               </select>
@@ -400,18 +368,19 @@
       `);
     }
     function savePlan(e) {
-      e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target)); obj.id = generateId('VP'); obj.actualDate = ''; obj.status = 'Scheduled';
+      e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target));
+      obj.id = generateId('VP'); obj.actualDate = ''; obj.status = 'Scheduled';
       let diff = Math.ceil((new Date(obj.planDate) - new Date(todayStr)) / (1000 * 60 * 60 * 24));
       obj.daysUntilDue = diff; if (obj.planDate < todayStr) obj.status = 'Overdue';
       db.plan.push(obj); setDB('db_plan', db.plan); closeModal(); renderVisitPlan(document.getElementById('app-content'));
     }
 
     // =========================================================================
-    // 7. AKTIFITAS
+    // 7. AKTIFITAS (Dengan Logic Data-Journey)
     // =========================================================================
     function renderAktifitas(c) {
       let rows = db.aktifitas.map(a => `<tr><td class="text-xs text-[var(--text-muted)]">${a.visitId}</td><td>${a.kontakToko}</td><td class="font-bold text-[var(--accent)]">${a.namaToko}</td><td>${a.tanggalKunjungan}</td><td>${a.orderKe}</td><td>${a.jenisKunjungan}</td><td>${a.aktifitas}</td><td>${a.kategoriSampling}</td><td>${a.sampleDescription}</td><td>${a.size}</td><td class="text-[var(--danger)] font-bold">${a.keluhanFeedback}</td><td>${a.linkFoto?'Terlampir':'-'}</td><td>${a.keterangan}</td><td><span class="badge bg-green-600">${a.status}</span></td><td><button onclick="delAktifitas('${a.id}')" class="text-xs text-[var(--danger)] font-bold">Del</button></td></tr>`).join('');
-      c.innerHTML = `<div class="flex justify-between items-center mb-6"><h1 class="text-3xl font-bold">Log Aktifitas Kunjungan</h1><button onclick="formAktifitas()" class="btn btn-primary">+ Lapor Aktifitas Visit</button></div><div class="card overflow-x-auto"><table><thead><tr><th>visitId</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>TANGGAL KUNJUNGAN</th><th>ORDER KE</th><th>JENIS KUNJUNGAN</th><th>AKTIFITAS</th><th>KATEGORI SAMPLING</th><th>SAMPLE DESCRIPTION</th><th>SIZE</th><th>KELUHAN & FEEDBACK</th><th>LINK FOTO</th><th>KETERANGAN</th><th>STATUS</th><th>ACT</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+      c.innerHTML = `<div class="flex justify-between items-center mb-6"><h1 class="text-3xl font-bold">Log Aktifitas</h1><button onclick="formAktifitas()" class="btn btn-primary">+ Lapor Aktifitas Visit</button></div><div class="card overflow-x-auto"><table><thead><tr><th>visitId</th><th>KONTAK TOKO</th><th>NAMA TOKO</th><th>TANGGAL KUNJUNGAN</th><th>ORDER KE</th><th>JENIS KUNJUNGAN</th><th>AKTIFITAS</th><th>KATEGORI SAMPLING</th><th>SAMPLE DESCRIPTION</th><th>SIZE</th><th>KELUHAN & FEEDBACK</th><th>LINK FOTO</th><th>KETERANGAN</th><th>STATUS</th><th>ACT</th></tr></thead><tbody>${rows}</tbody></table></div>`;
     }
     function formAktifitas() {
       let planOptions = db.plan.filter(p=>p.status!=='Visited').map(p => `<option value="${p.id}" data-kontak="${p.kontakToko}" data-nama="${p.namaToko}">${p.planDate} | ${p.namaToko} - ${p.tujuanKunjungan}</option>`).join('');
@@ -419,7 +388,7 @@
         <h2 class="text-xl font-bold mb-4">Laporan Hasil Visit (Aktifitas)</h2>
         <form onsubmit="saveAktifitas(event)">
           <div class="grid grid-cols-2 gap-4 mb-4">
-            <div class="col-span-2"><label class="text-xs">PILIH VISIT PLAN YANG SUDAH DIJADWALKAN *</label>
+            <div class="col-span-2"><label class="text-xs">PILIH VISIT PLAN * (Otomatis mengubah status Visit Plan menjadi Visited)</label>
               <select required name="visitId" class="input-field" onchange="let opt = this.options[this.selectedIndex]; document.getElementById('actKontak').value = opt.dataset.kontak; document.getElementById('actNama').value = opt.dataset.nama;">
                 <option value="">-- Pilih Jadwal Plan Terbuka --</option>${planOptions}
               </select>
@@ -441,11 +410,23 @@
       `);
     }
     function saveAktifitas(e) {
-      e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target)); obj.id = generateId('ACT'); obj.status = 'Completed'; db.aktifitas.push(obj); setDB('db_aktifitas', db.aktifitas);
+      e.preventDefault(); let obj = Object.fromEntries(new FormData(e.target));
+      obj.id = generateId('ACT'); obj.status = 'Completed'; 
+      db.aktifitas.push(obj); setDB('db_aktifitas', db.aktifitas);
+
+      // DATA JOURNEY WORKFLOW: Update Plan
       let pIdx = db.plan.findIndex(p => p.id === obj.visitId);
-      if(pIdx > -1) { db.plan[pIdx].status = 'Visited'; db.plan[pIdx].actualDate = obj.tanggalKunjungan; db.plan[pIdx].daysUntilDue = 'Done'; setDB('db_plan', db.plan); }
+      if(pIdx > -1) { 
+        db.plan[pIdx].status = 'Visited'; 
+        db.plan[pIdx].actualDate = obj.tanggalKunjungan; 
+        db.plan[pIdx].daysUntilDue = 'Done'; 
+        setDB('db_plan', db.plan); 
+      }
+
+      // DATA JOURNEY WORKFLOW: Update Last Visit Toko
       let tIdx = db.toko.findIndex(t => t.kodeKontak === obj.kontakToko);
       if(tIdx > -1) { db.toko[tIdx].lastVisit = obj.tanggalKunjungan; setDB('db_toko', db.toko); }
+
       closeModal(); renderAktifitas(document.getElementById('app-content'));
     }
 
