@@ -76,10 +76,9 @@
     // =========================================================================
     // 1. DATA INITIALIZATION & GLOBALS
     // =========================================================================
-    // Versi 12: Penambahan status "Called" menyesuaikan Jenis Kunjungan (Remote)
-    if(localStorage.getItem('crm_version') !== 'FINAL_V12') {
+    if(localStorage.getItem('crm_version') !== 'FINAL_V13') {
       localStorage.clear();
-      localStorage.setItem('crm_version', 'FINAL_V12');
+      localStorage.setItem('crm_version', 'FINAL_V13');
     }
 
     const INIT_SETUP = {
@@ -124,7 +123,6 @@
 
     const todayStr = new Date().toISOString().split('T')[0];
     
-    // Auto Calculate OVERDUE Plans & Integrasi Status Called/Cancelled
     db.plan.forEach(p => {
         if(p.status !== 'Visited' && p.status !== 'Called' && p.status !== 'Cancelled') { 
             p.status = (p.planDate < todayStr) ? 'Overdue' : 'Scheduled'; 
@@ -201,63 +199,97 @@
       let fEnd = document.getElementById('dashEnd') ? document.getElementById('dashEnd').value : window.dashFilters.end;
       let fToko = document.getElementById('dashToko') ? document.getElementById('dashToko').value : window.dashFilters.toko;
       let fPIC = document.getElementById('dashPIC') ? document.getElementById('dashPIC').value : window.dashFilters.pic;
+      let fAgen = document.getElementById('dashAgen') ? document.getElementById('dashAgen').value : window.dashFilters.agen;
       
-      window.dashFilters = { start: fStart, end: fEnd, pic: fPIC, agen: '', toko: fToko };
-      let tokoMap = {}; db.toko.forEach(t => tokoMap[t.kodeKontak] = { pic: t.pic, orderKe: t.orderKe });
+      window.dashFilters = { start: fStart, end: fEnd, pic: fPIC, agen: fAgen, toko: fToko };
+      let tokoMap = {}; db.toko.forEach(t => tokoMap[t.kodeKontak] = { pic: t.pic, orderKe: t.orderKe, status: t.status });
 
       const baseF_Plan = p => { if(fStart && p.planDate < fStart) return false; if(fEnd && p.planDate > fEnd) return false; if(fToko && p.kontakToko !== fToko) return false; return true; };
       const baseF_Akt = a => { if(fStart && a.tanggalKunjungan < fStart) return false; if(fEnd && a.tanggalKunjungan > fEnd) return false; if(fToko && a.kontakToko !== fToko) return false; return true; };
       const baseF_Intel = i => { if(fStart && i.date < fStart) return false; if(fEnd && i.date > fEnd) return false; if(fToko && i.kontakToko !== fToko) return false; return true; };
 
-      let fPlanCombined = db.plan.filter(p => baseF_Plan(p) && (!fPIC || p.pic === fPIC));
-      let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)));
-      let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC)));
+      // Kalkulasi Data Terfilter
+      let fPlanCombined = db.plan.filter(p => baseF_Plan(p) && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen)));
+      let fAktifitasCombined = db.aktifitas.filter(a => baseF_Akt(a) && (!fPIC || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[a.kontakToko] && tokoMap[a.kontakToko].orderKe === fAgen)));
+      let fIntelCombined = db.intel.filter(i => baseF_Intel(i) && (!fPIC || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].pic === fPIC)) && (!fAgen || (tokoMap[i.kontakToko] && tokoMap[i.kontakToko].orderKe === fAgen)));
+      
+      let filteredToko = db.toko.filter(t => {
+          if(fToko && t.kodeKontak !== fToko) return false;
+          if(fPIC && t.pic !== fPIC) return false;
+          if(fAgen && t.orderKe !== fAgen) return false;
+          return true;
+      });
 
-      // Data Status Kunjungan (+ Penambahan Kategori Called & Cancelled)
+      // KEY PERFORMANCE INDICATORS (KPI)
+      let kpi_tokoAktif = filteredToko.filter(t => t.status !== 'Inactive').length;
+      let kpi_targetKunjungan = filteredToko.reduce((sum, t) => sum + Number(t.targetKunjungan || 0), 0);
+      
       let c_visited = fPlanCombined.filter(p=>p.status==='Visited').length;
       let c_called = fPlanCombined.filter(p=>p.status==='Called').length;
       let c_scheduled = fPlanCombined.filter(p=>p.status==='Scheduled').length;
       let c_overdue = fPlanCombined.filter(p=>p.status==='Overdue').length;
       let c_cancelled = fPlanCombined.filter(p=>p.status==='Cancelled').length;
+      
+      let kpi_realisasi = c_visited + c_called;
+      let kpi_persentase = kpi_targetKunjungan > 0 ? Math.round((kpi_realisasi / kpi_targetKunjungan) * 100) : 0;
 
       let compData = {}; fIntelCombined.forEach(i => { let k = i.kompetitor || 'Unknown'; compData[k] = (compData[k] || 0) + 1; });
       let issueData = {}; fAktifitasCombined.forEach(a => { if(a.keluhanFeedback && a.keluhanFeedback !== 'Tidak ada keluhan') issueData[a.keluhanFeedback] = (issueData[a.keluhanFeedback] || 0) + 1; });
       let samplingData = {}; fAktifitasCombined.forEach(a => { if(a.kategoriSampling) samplingData[a.kategoriSampling] = (samplingData[a.kategoriSampling] || 0) + 1; });
-      
       let linkData = { 'Melampirkan': 0, 'Tidak Melampirkan': 0 };
       fAktifitasCombined.forEach(a => { if(a.linkTersedia === 'Melampirkan') linkData['Melampirkan']++; else linkData['Tidak Melampirkan']++; });
 
       let optToko = db.toko.map(t => `<option value="${t.kodeKontak}" ${fToko === t.kodeKontak ? 'selected':''}>${t.namaToko}</option>`).join('');
-      let upcomingPlan = db.plan.filter(p => p.status === 'Scheduled' && p.planDate >= todayStr).sort((a,b) => new Date(a.planDate) - new Date(b.planDate));
+      let upcomingPlan = db.plan.filter(p => p.status === 'Scheduled' && p.planDate >= todayStr && (!fPIC || p.pic === fPIC) && (!fAgen || (tokoMap[p.kontakToko] && tokoMap[p.kontakToko].orderKe === fAgen))).sort((a,b) => new Date(a.planDate) - new Date(b.planDate));
 
       c.innerHTML = `
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold">Dashboard Analytics</h1>
             <div>
-                <button onclick="downloadReportLampiran()" class="btn btn-warning text-sm mr-2 text-black">📥 Unduh Kepatuhan Foto</button>
-                <button onclick="resetFilters()" class="btn btn-secondary text-sm">↻ Reset Filter</button>
+                <button onclick="downloadReportLampiran()" class="btn btn-warning text-sm mr-2 text-black shadow-md">📥 Unduh Kepatuhan Foto</button>
+                <button onclick="resetFilters()" class="btn btn-secondary text-sm shadow-md">↻ Reset Filter</button>
             </div>
         </div>
         
-        <div class="card bg-[#352f4a] border-[var(--border)] mb-6">
-            <div class="grid grid-cols-4 gap-6">
+        <div class="card bg-[#352f4a] border-[var(--border)] mb-6 shadow-md">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
                <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL MULAI</label><input type="date" id="dashStart" value="${fStart}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
                <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">TANGGAL AKHIR</label><input type="date" id="dashEnd" value="${fEnd}" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"></div>
-               <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">FILTER TOKO SPESIFIK</label><select id="dashToko" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Toko --</option>${optToko}</select></div>
-               <div><label class="text-xs text-[var(--accent)] font-bold mb-1 block">FILTER PIC</label><select id="dashPIC" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua PIC --</option>${optionsHtml(db.setup.PIC, fPIC)}</select></div>
+               <div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER TOKO SPESIFIK</label><select id="dashToko" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Toko --</option>${optToko}</select></div>
+               <div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER AGENT (ORDER KE)</label><select id="dashAgen" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua Agent --</option>${optionsHtml(db.setup.ORDER_KE, fAgen)}</select></div>
+               <div><label class="text-xs text-[#a18cd1] font-bold mb-1 block">FILTER PIC</label><select id="dashPIC" class="input-field mt-0" onchange="renderDashboard(document.getElementById('app-content'))"><option value="">-- Semua PIC --</option>${optionsHtml(db.setup.PIC, fPIC)}</select></div>
            </div>
         </div>
 
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div class="card border-t-4 border-[#a18cd1] shadow-md">
+                <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TOTAL TOKO AKTIF</p>
+                <h2 class="text-3xl font-bold mt-1 text-white">${kpi_tokoAktif}</h2>
+            </div>
+            <div class="card border-t-4 border-[#a18cd1] shadow-md">
+                <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">TARGET MASTER KUNJUNGAN</p>
+                <h2 class="text-3xl font-bold mt-1 text-[#fbc2eb]">${kpi_targetKunjungan}</h2>
+            </div>
+            <div class="card border-t-4 border-[var(--accent)] shadow-md">
+                <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">REALISASI (VISITED + CALLED)</p>
+                <h2 class="text-3xl font-bold mt-1 text-[var(--accent)]">${kpi_realisasi}</h2>
+            </div>
+            <div class="card border-t-4 border-[var(--accent)] shadow-md">
+                <p class="text-[10px] text-[var(--text-muted)] font-bold tracking-wider">PERSENTASE PENCAPAIAN</p>
+                <h2 class="text-3xl font-bold mt-1 ${kpi_persentase >= 100 ? 'text-green-400' : 'text-yellow-400'}">${kpi_persentase}%</h2>
+            </div>
+        </div>
+
         <div class="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-            <div class="card h-64 flex flex-col"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">STATUS KUNJUNGAN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKunjungan"></canvas></div></div>
-            <div class="card h-64 flex flex-col"><h3 class="font-bold text-xs mb-2 text-center text-[#a18cd1]">KATEGORI KOMPLAIN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartIssue"></canvas></div></div>
-            <div class="card h-64 flex flex-col"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">KATEGORI SAMPLING</h3><div class="flex-1 relative w-full h-full"><canvas id="chartSampling"></canvas></div></div>
-            <div class="card h-64 flex flex-col"><h3 class="font-bold text-xs mb-2 text-center text-yellow-500">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
-            <div class="card h-64 flex flex-col lg:col-span-2"><h3 class="font-bold text-xs mb-2 text-center text-[#a18cd1]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">STATUS KUNJUNGAN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKunjungan"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#a18cd1]">KATEGORI KOMPLAIN</h3><div class="flex-1 relative w-full h-full"><canvas id="chartIssue"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[var(--accent)]">KATEGORI SAMPLING</h3><div class="flex-1 relative w-full h-full"><canvas id="chartSampling"></canvas></div></div>
+            <div class="card h-64 flex flex-col shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-yellow-500">KEPATUHAN FOTO (PIC)</h3><div class="flex-1 relative w-full h-full"><canvas id="chartLampiran"></canvas></div></div>
+            <div class="card h-64 flex flex-col lg:col-span-2 shadow-md"><h3 class="font-bold text-xs mb-2 text-center text-[#a18cd1]">LAPORAN KOMPETITOR</h3><div class="flex-1 relative w-full h-full"><canvas id="chartKompetitor"></canvas></div></div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            <div class="card flex flex-col">
+            <div class="card flex flex-col shadow-md">
               <h3 class="font-bold text-sm mb-4">AKTIFITAS TERAKHIR</h3>
               <div class="overflow-x-auto flex-1">
               <table>
@@ -267,7 +299,7 @@
               </div>
             </div>
 
-            <div class="card flex flex-col border-l-4 border-yellow-500">
+            <div class="card flex flex-col border-l-4 border-yellow-500 shadow-md">
               <h3 class="font-bold text-sm mb-4 text-yellow-500">UPCOMING VISIT (SCHEDULED)</h3>
               <div class="overflow-x-auto flex-1">
               <table>
@@ -502,7 +534,6 @@
 
       db.aktifitas.push(obj); setDB('db_aktifitas', db.aktifitas);
 
-      // Sinkronisasi Status Aktifitas ke Visit Plan (Membaca Jenis Kunjungan)
       let tIdx = db.toko.findIndex(t => t.kodeKontak === obj.kontakToko);
       let jenisKunjunganToko = tIdx > -1 ? db.toko[tIdx].jenisKunjungan : '';
 
@@ -511,7 +542,6 @@
           if(obj.status === 'Cancelled') {
               db.plan[pIdx].status = 'Cancelled';
           } else if (jenisKunjunganToko.includes('Call') || jenisKunjunganToko.includes('Remote') || jenisKunjunganToko.includes('WA')) {
-              // Jika kunjungannya berbasis call/remote, set status jadi Called
               db.plan[pIdx].status = 'Called';
           } else {
               db.plan[pIdx].status = 'Visited';
