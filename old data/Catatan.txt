@@ -1,0 +1,20 @@
+1. bisa add Master data seperti status toko dll. button berada di dalam halaman ini 
+   dengan ketentuan seperti yang sudah di buat dan bisa custom tablenya
+2. pada daftar toko, Order ke itu bisa di rubah sesuai rule sales 
+   manager ( Dropdown belum jalan )
+3. Buatakan Rule untuk Sales dan sales manager sederhanya 
+4. Status link foto tidak terlampir namun link atau sesuai isian usernya dan 
+   jika tidak ada link nanti ada point pada performace akan mempengaruhi dan ada tambahan kolom pada bagian log aktivitas yang menyatakan tidak melampirkan link 
+5. ada tambahan Chart pada dashboard yang mana akan menampilkan PIC melampirkan dan tidak
+    melampirkan Lnk foto pada aktifitas 
+6. Dowloan lampiran pada dashboar untuk report 
+7. Laporan kompetitor itu berdasarkan dari Aktivitas kompetitor pada Set up
+8. Status Failed tetap overdue saja tanpa ubah fungsi
+9. jika status pada Visit Plan statusnya harus mengikuti dari form tambah Daftar Toko itu sendiri
+10. tambah 1 kategory pada chart status kunjungan harus mengikuti status pada Visit Plan
+11. tambah satu kolom dengan nama upcoming visit pada dashbord dimana ketentuannya
+berdasarkan data yang ada di visit plan yang statusnya masih scedule dengan paramater 
+	- nama toko
+	- tujuan kunjungan
+	- Plan date
+	- Priority based on priority di VIsit plan
